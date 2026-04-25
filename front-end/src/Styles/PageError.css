@@ -1,0 +1,115 @@
+/* PageError.css */
+.error-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+.error-content {
+  text-align: center;
+  background-color: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
+  animation: fadeIn 0.8s ease-out;
+}
+
+.error-title {
+  font-size: 8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.error-subtitle {
+  font-size: 2rem;
+  color: #3498db;
+  margin: 10px 0;
+  font-weight: 600;
+}
+
+.error-message {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 20px 0 30px;
+  line-height: 1.6;
+}
+
+.error-home-link {
+  display: inline-block;
+  background: linear-gradient(to right, #3498db, #2c3e50);
+  color: white;
+  text-decoration: none;
+  padding: 15px 35px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  border: none;
+  cursor: pointer;
+}
+
+.error-home-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+  background: linear-gradient(to right, #2980b9, #1a252f);
+}
+
+.error-home-link:active {
+  transform: translateY(-1px);
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .error-content {
+    padding: 30px 20px;
+  }
+  
+  .error-title {
+    font-size: 6rem;
+  }
+  
+  .error-subtitle {
+    font-size: 1.5rem;
+  }
+  
+  .error-message {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-title {
+    font-size: 5rem;
+  }
+  
+  .error-subtitle {
+    font-size: 1.3rem;
+  }
+  
+  .error-home-link {
+    padding: 12px 30px;
+    font-size: 0.9rem;
+  }
+}

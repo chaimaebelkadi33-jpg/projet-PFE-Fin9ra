@@ -1,0 +1,465 @@
+.accueil-page {
+  min-height: 100vh;
+  background: white;
+}
+
+/* Hero Section */
+.accueil-hero {
+  background: white;
+  padding: 40px 20px 60px;
+  position: relative;
+  text-align: center;
+}
+
+.accueil-search-container {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Results Section */
+.accueil-results {
+  padding: 60px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+}
+
+/* Titles */
+.accueil-title {
+  font-size: 2rem;
+  color: #002147;
+  margin-bottom: 40px;
+  text-align: left;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* Schools Grid */
+.accueil-schools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+/* View All Button */
+.accueil-view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #002147;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 12px 28px;
+  border: 2px solid #002147;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.accueil-view-all-btn:hover {
+  background: #002147;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 33, 71, 0.3);
+}
+
+/* No Results */
+.accueil-no-results {
+  text-align: center;
+  padding: 60px 40px;
+  background: #f8f9fa;
+  border-radius: 15px;
+  margin: 20px 0;
+  border: 1px solid #e0e0e0;
+}
+
+.accueil-no-results p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.accueil-back-btn {
+  background: #002147;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accueil-back-btn:hover {
+  background: #001a36;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 26, 54, 0.3);
+}
+
+.accueil-back-btn:before {
+  content: "←";
+  font-size: 1.1rem;
+}
+
+/* Loading */
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #002147;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.accueil-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  font-size: 1.2rem;
+  color: #666;
+  background: white;
+}
+
+/* Active Filters */
+.accueil-active-filters {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.accueil-active-filters p {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+.accueil-filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.accueil-filter-tag {
+  background: #e0ffff;
+  color: #002147;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #00ced1;
+}
+
+.accueil-remove-filter {
+  background: none;
+  border: none;
+  color: #002147;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  margin: 0;
+  opacity: 0.7;
+}
+
+.accueil-remove-filter:hover {
+  opacity: 1;
+}
+
+/* Carousel Section - Infinite Continuous Scroll */
+.accueil-carousel-section {
+  padding: 40px 20px;
+  /* background: #f8f9fa; */
+  overflow: hidden;
+}
+
+.carousel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto 25px;
+  padding: 0 19px;
+}
+
+.carousel-title {
+  font-size: 1.8rem;
+  text-decoration: underline;
+  color: #002147;
+  margin: 0;
+  font-weight: 700;
+}
+
+.carousel-wrapper {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.carousel-container {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 10px 0;
+}
+
+.carousel-container::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-track-horizontal {
+  display: flex;
+  gap: 15px;
+  padding: 10px 10px;
+  width: max-content;
+}
+
+.carousel-card {
+  flex: 0 0 auto;
+  width: 280px;
+}
+
+/* Carousel Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 33, 71, 0.8);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-arrow:hover {
+  background: #00cde1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow.prev {
+  left: -15px;
+}
+
+.carousel-arrow.next {
+  right: -15px;
+}
+
+/* School Cards plus petites sur la page d'accueil */
+.accueil-carousel-section .school-card,
+.accueil-schools-grid .school-card {
+  width: 280px !important;
+  height: 280px !important;
+}
+
+.accueil-carousel-section .card-image,
+.accueil-schools-grid .card-image {
+  height: 160px !important;
+}
+
+.accueil-carousel-section .school-name,
+.accueil-schools-grid .school-name {
+  font-size: 0.95rem !important;
+  margin-bottom: 8px !important;
+}
+
+.accueil-carousel-section .type-badge,
+.accueil-schools-grid .type-badge {
+  font-size: 0.65rem !important;
+  padding: 3px 8px !important;
+}
+
+.accueil-carousel-section .school-location,
+.accueil-schools-grid .school-location {
+  font-size: 0.85rem !important;
+  margin-bottom: 12px !important;
+}
+
+.accueil-carousel-section .voir-plus-btn,
+.accueil-schools-grid .voir-plus-btn {
+  padding: 8px 16px !important;
+  font-size: 0.8rem !important;
+}
+
+/* View All Container */
+.accueil-view-all-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+/* ====== RESPONSIVE DESIGN ====== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .accueil-schools-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Mobile Large */
+@media (max-width: 768px) {
+  .accueil-hero {
+    padding: 30px 20px 50px;
+  }
+
+  .accueil-results {
+    padding: 40px 20px;
+  }
+
+  .accueil-title {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+
+  .accueil-schools-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .carousel-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .carousel-title {
+    font-size: 1.5rem;
+  }
+
+  .carousel-card {
+    width: 240px;
+  }
+
+  .carousel-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .carousel-arrow.prev {
+    left: -10px;
+  }
+
+  .carousel-arrow.next {
+    right: -10px;
+  }
+
+  .accueil-carousel-section .school-card,
+  .accueil-schools-grid .school-card {
+    width: 240px !important;
+    height: 260px !important;
+  }
+
+  .accueil-carousel-section .card-image,
+  .accueil-schools-grid .card-image {
+    height: 140px !important;
+  }
+
+  .accueil-carousel-section .school-name,
+  .accueil-schools-grid .school-name {
+    font-size: 0.85rem !important;
+  }
+
+  .accueil-no-results {
+    padding: 40px 20px;
+  }
+
+  .accueil-no-results p {
+    font-size: 1.1rem;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 480px) {
+  .accueil-hero {
+    padding: 20px 15px 40px;
+  }
+
+  .accueil-results {
+    padding: 30px 15px;
+  }
+
+  .accueil-title {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+  }
+
+  .accueil-view-all-btn,
+  .accueil-back-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+  }
+
+  .accueil-carousel-section {
+    padding: 30px 10px;
+  }
+
+  .carousel-card {
+    width: 220px;
+  }
+
+  .carousel-arrow {
+    display: none;
+  }
+
+  .accueil-carousel-section .school-card,
+  .accueil-schools-grid .school-card {
+    width: 220px !important;
+    height: 250px !important;
+  }
+
+  .accueil-carousel-section .card-image,
+  .accueil-schools-grid .card-image {
+    height: 120px !important;
+  }
+
+  .accueil-no-results {
+    padding: 30px 15px;
+  }
+
+  .accueil-no-results p {
+    font-size: 1rem;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 360px) {
+  .accueil-hero {
+    padding: 15px 10px 30px;
+  }
+
+  .accueil-title {
+    font-size: 1.2rem;
+  }
+}

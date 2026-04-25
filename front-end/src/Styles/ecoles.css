@@ -1,0 +1,312 @@
+/* Ecoles Page Layout */
+.ecoles-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Loading States */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #4a90e2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
+}
+
+.no-results-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.no-results h3 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+.no-results p {
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.reset-filters-btn {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reset-filters-btn:hover {
+  background: #357ae8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 40px 0 20px;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #002147;
+  color: white;
+  border-color: #002147;
+  transform: translateY(-2px);
+}
+
+.pagination-btn.active {
+  background: #002147;
+  color: white;
+  border-color: #002147;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-dots {
+  color: #666;
+  padding: 0 4px;
+}
+
+/* Grid View */
+.schools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  padding: 20px;
+}
+
+/* List View */
+.schools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.schools-list .school-card {
+  width: 100%;
+  flex-direction: row;
+  height: auto;
+  min-height: 180px;
+}
+
+.schools-list .card-image {
+  width: 200px;
+  height: 180px;
+}
+
+.schools-list .card-content {
+  flex: 1;
+}
+
+/* Animation pour les cartes */
+.school-item {
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hero Section */
+.ecoles-hero {
+  background:002147;
+  padding: 20px 20px;
+  text-align: center;
+  margin-bottom: 0px;
+  border-radius: 0 0 30px 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ecoles-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.ecoles-hero-title {
+  font-size: 2.5rem;
+  color: #002147;
+  margin-bottom: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  animation: fadeInDown 0.8s ease;
+}
+
+.ecoles-hero-title .highlight {
+  color: #00cde1;
+  position: relative;
+  display: inline-block;
+}
+
+.ecoles-hero-subtitle {
+  font-size: 1.1rem;
+  color: #002147;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+  animation: fadeInUp 0.8s ease;
+}
+
+/* Hero Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filters Wrapper */
+.filters-wrapper {
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  margin-bottom: 20px;
+}
+
+.filters-stats-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .schools-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .schools-list .school-card {
+    flex-direction: column;
+  }
+  
+  .schools-list .card-image {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .pagination-btn {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+
+  .filters-wrapper {
+    position: relative;
+    top: 0;
+  }
+
+  .ecoles-hero-title {
+    font-size: 1.8rem;
+  }
+
+  .ecoles-hero-subtitle {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 5px;
+  }
+  
+  .pagination-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 0.8rem;
+  }
+
+  .ecoles-hero {
+    padding: 40px 15px;
+  }
+
+  .ecoles-hero-title {
+    font-size: 1.5rem;
+  }
+
+  .ecoles-hero-subtitle {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop (1200px and above) */
+@media (min-width: 1200px) {
+  .ecoles-hero {
+    padding: 80px 20px;
+  }
+
+  .ecoles-hero-title {
+    font-size: 3rem;
+  }
+
+  .ecoles-hero-subtitle {
+    font-size: 1.2rem;
+  }
+}

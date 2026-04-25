@@ -1,0 +1,135 @@
+.admin-reviews-page {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.moderation-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 5px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mod-tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.mod-tab:hover {
+  color: white;
+}
+
+.mod-tab.active {
+  background: #00ffff;
+  color: #002147;
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+}
+
+.moderation-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 20px;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: rgba(0, 255, 255, 0.05);
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(0, 255, 255, 0.1);
+}
+
+.selection-count {
+  color: #00ffff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.bulk-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-bulk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-bulk.approve {
+  background: #10b981;
+  color: white;
+}
+
+.btn-bulk.delete {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-bulk:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* Table styles */
+.reviews-table { border-collapse: separate; border-spacing: 0 8px; }
+.reviews-table tr td { background: rgba(255, 255, 255, 0.02); border-top: 1px solid rgba(255, 255, 255, 0.05); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.reviews-table tr td:first-child { border-left: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px 0 0 12px; }
+.reviews-table tr td:last-child { border-right: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0 12px 12px 0; }
+
+.row-selected td { background: rgba(0, 255, 255, 0.03) !important; border-color: rgba(0, 255, 255, 0.1) !important; }
+
+.checkbox-col { width: 40px; text-align: center; }
+.user-profile-mini { display: flex; align-items: center; gap: 10px; }
+.avatar-letter { width: 32px; height: 32px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #94a3b8; }
+
+.rating-group { display: flex; flex-direction: column; gap: 5px; }
+.premium-stars { display: flex; gap: 2px; }
+.star-premium { font-size: 1rem; }
+.star-premium.full { color: #ffc107; }
+.star-premium.empty { color: #444; }
+.rating-badge { font-size: 0.75rem; font-weight: 800; color: #94a3b8; }
+
+.sentiment-positive .rating-badge { color: #10b981; }
+.sentiment-neutral .rating-badge { color: #f59e0b; }
+.sentiment-negative .rating-badge { color: #ef4444; }
+
+.comment-cell { max-width: 300px; }
+.comment-bubble { background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; font-style: italic; color: #cbd5e1; font-size: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.05); }
+
+.action-btns-group { display: flex; gap: 10px; }
+.btn-action { width: 38px; height: 38px; border-radius: 10px; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer; transition: all 0.3s ease; }
+
+.btn-action.approve { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+.btn-action.approve:hover:not(:disabled) { background: #10b981; color: white; transform: scale(1.1); }
+
+.btn-action.delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
+.btn-action.delete:hover:not(:disabled) { background: #ef4444; color: white; transform: scale(1.1); }
+
+.btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
