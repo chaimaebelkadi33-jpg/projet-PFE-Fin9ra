@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../Components/Toast";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getSchoolById, getSchoolReviews, addReview } from "../Services/api";
+import { getSchoolById, getSchoolReviews, addReview, getImageUrl, toggleFavorite } from "../Services/api";
 import { 
   HiOutlineArrowLeft, 
   HiOutlineChevronLeft, 
@@ -9,7 +9,9 @@ import {
   HiOutlineStar, 
   HiStar,
   HiOutlineAcademicCap, 
-  HiOutlineMap 
+  HiOutlineMap,
+  HiOutlineHeart,
+  HiHeart
 } from "react-icons/hi2";
 import { useAuth } from "../Context/AuthContext";
 import "../Styles/ecoleDetail.css";
@@ -27,8 +29,47 @@ function EcoleDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, favorites, setFavorites } = useAuth();
   const toast = useToast();
+
+  const isFavorited = favorites.includes(parseInt(id));
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      toast.info("Veuillez vous connecter pour ajouter des favoris");
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+
+    const schoolId = parseInt(id);
+    const wasFavorited = isFavorited;
+
+    // Optimistic update
+    if (wasFavorited) {
+      setFavorites(favorites.filter(favId => favId !== schoolId));
+    } else {
+      setFavorites([...favorites, schoolId]);
+    }
+
+    try {
+      const response = await toggleFavorite(id);
+      if (response.data.success) {
+        if (response.data.is_favorited) {
+          toast.success("Ajouté aux favoris");
+        } else {
+          toast.success("Retiré des favoris");
+        }
+      } else {
+        // Revert if success is false
+        setFavorites(wasFavorited ? [...favorites, schoolId] : favorites.filter(favId => favId !== schoolId));
+        toast.error("Erreur lors de la mise à jour");
+      }
+    } catch (error) {
+      // Revert on error
+      setFavorites(wasFavorited ? [...favorites, schoolId] : favorites.filter(favId => favId !== schoolId));
+      toast.error("Erreur lors de la mise à jour des favoris");
+    }
+  };
 
   // Scroll en haut de page à chaque changement d'école
   useEffect(() => {
@@ -42,7 +83,7 @@ function EcoleDetails() {
   const [school, setSchool] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(location.state?.tab || "overview");
   const [expandedSections, setExpandedSections] = useState({});
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
@@ -64,6 +105,13 @@ function EcoleDetails() {
     loadSchool();
     loadReviews();
   }, [id]);
+
+  // Écouter les changements d'état de localisation pour la navigation par onglet
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state]);
 
   const loadSchool = async () => {
     try {
@@ -116,9 +164,9 @@ function EcoleDetails() {
   const getAllImages = useCallback(() => {
     if (!school) return [];
 
-    const existingImages = [school.logo, ...(school.images || [])].filter(
-      (img) => img && img.trim() !== "",
-    );
+    const existingImages = [school.logo, ...(school.images || [])]
+      .filter((img) => img && img.trim() !== "")
+      .map(img => getImageUrl(img));
 
     if (existingImages.length > 0) {
       return existingImages;
@@ -320,6 +368,13 @@ function EcoleDetails() {
         </div>
         <div className="school-header">
           <h1 className="school-title">{school.nom}</h1>
+          <button 
+            className={`school-favorite-btn ${isFavorited ? 'active' : ''}`}
+            onClick={handleToggleFavorite}
+            title={isFavorited ? "Retirer des favoris" : "Ajouter aux favoris"}
+          >
+            {isFavorited ? <HiHeart /> : <HiOutlineHeart />}
+          </button>
         </div>
       </div>
 

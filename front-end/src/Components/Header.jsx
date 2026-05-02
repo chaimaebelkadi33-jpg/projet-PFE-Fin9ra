@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
+import { getImageUrl } from "../Services/api";
 // import { adminGetPendingReviewsCount } from "../Services/api";
 import "../Styles/header.css";
 import logo from "../Assets/logo/logo.jpg";
-import { 
-  HiOutlineHome, 
-  HiOutlineAcademicCap, 
-  HiOutlineEnvelope, 
+import {
+  HiOutlineHome,
+  HiOutlineAcademicCap,
+  HiOutlineEnvelope,
   HiOutlineChatBubbleBottomCenterText,
   HiOutlineArrowRightOnRectangle,
   HiOutlineArrowLeftOnRectangle,
   HiOutlineBars3,
-  HiOutlineXMark
+  HiOutlineXMark,
+  HiOutlineBell,
+  HiOutlineUserCircle,
+  HiOutlineSparkles,
 } from "react-icons/hi2";
 
 const Header = () => {
@@ -21,7 +25,6 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-
 
   const toggleMenu = () => {
     const newMenuState = !isMenuOpen;
@@ -84,59 +87,129 @@ const Header = () => {
         {/* Navigation */}
         <nav className="main-navigation">
           <ul className="nav-items">
-            <li className="nav-item">
-              <NavLink
-                to="/"
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-                onClick={closeMobileMenu}
-              >
-                <span className="nav-text">Accueil</span>
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink
-                to="/ecoles"
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-                onClick={closeMobileMenu}
-              >
-                <span className="nav-text">Écoles</span>
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink
-                to="/contact"
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-                onClick={closeMobileMenu}
-              >
-                <span className="nav-text">Contact</span>
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink
-                to="/About"
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? "active" : ""}`
-                }
-                onClick={closeMobileMenu}
-              >
-                <span className="nav-text">A propos</span>
-              </NavLink>
-            </li>
+            {/* On ne montre ces liens que si l'utilisateur n'est pas admin */}
+            {!(isAuthenticated && user?.is_admin) && (
+              <>
+                <li className="nav-item">
+                  <NavLink
+                    to="/"
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active" : ""}`
+                    }
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="nav-text">Accueil</span>
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink
+                    to="/ecoles"
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active" : ""}`
+                    }
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="nav-text">Écoles</span>
+                  </NavLink>
+                </li>
+                {isAuthenticated && (
+                  <li className="nav-item">
+                    <NavLink
+                      to="/recommendations"
+                      className={({ isActive }) =>
+                        `nav-link recommendation-link ${isActive ? "active" : ""}`
+                      }
+                      onClick={closeMobileMenu}
+                    >
+                      <HiOutlineSparkles className="nav-icon-sparkle" />
+                      <span className="nav-text">Conseils IA</span>
+                    </NavLink>
+                  </li>
+                )}
+                <li className="nav-item">
+                  <NavLink
+                    to="/contact"
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active" : ""}`
+                    }
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="nav-text">Contact</span>
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink
+                    to="/About"
+                    className={({ isActive }) =>
+                      `nav-link ${isActive ? "active" : ""}`
+                    }
+                    onClick={closeMobileMenu}
+                  >
+                    <span className="nav-text">A propos</span>
+                  </NavLink>
+                </li>
+              </>
+            )}
 
-
-
-            {/* Connexion / Déconnexion */}
+            {/* Section Admin / Utilisateur connecté à droite */}
             {isAuthenticated ? (
-              <li className="nav-item login-item">
-                <button onClick={handleLogout} className="logout-button">
-                  <HiOutlineArrowRightOnRectangle className="nav-icon" />
-                  <span className="login-text">Déconnexion</span>
+              <li className="nav-item user-profile-section">
+                {!!user?.is_admin && (
+                  <NavLink
+                    to="/admin/notifications"
+                    className="notification-bell"
+                    aria-label="Notifications"
+                  >
+                    <HiOutlineBell />
+                    <span className="notification-badge"></span>
+                  </NavLink>
+                )}
+                <div className="user-info">
+                  <span className="user-name">{user?.name}</span>
+                  {user?.is_admin ? (
+                    <NavLink
+                      to="/admin/profile"
+                      className="user-avatar-link"
+                      title="Mon Profil"
+                    >
+                      <div className="user-avatar-container clickable">
+                        {user?.avatar ? (
+                          <img
+                            src={getImageUrl(user.avatar)}
+                            alt={user.name}
+                            className="user-avatar"
+                          />
+                        ) : (
+                          <HiOutlineUserCircle className="user-avatar-placeholder" />
+                        )}
+                      </div>
+                    </NavLink>
+                  ) : (
+                    <NavLink
+                      to="/profile"
+                      className="user-avatar-link"
+                      title="Mon Profil"
+                    >
+                      <div className="user-avatar-container clickable">
+                        {user?.avatar ? (
+                          <img
+                            src={getImageUrl(user.avatar)}
+                            alt={user.name}
+                            className="user-avatar"
+                          />
+                        ) : (
+                          <HiOutlineUserCircle className="user-avatar-placeholder" />
+                        )}
+                      </div>
+                    </NavLink>
+                  )}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="logout-button-circle"
+                  title="Déconnexion"
+                >
+                  <HiOutlineArrowRightOnRectangle />
                 </button>
               </li>
             ) : (
@@ -160,7 +233,11 @@ const Header = () => {
           onClick={toggleMenu}
           aria-label="Toggle menu"
         >
-          {isMenuOpen ? <HiOutlineXMark className="toggle-icon" /> : <HiOutlineBars3 className="toggle-icon" />}
+          {isMenuOpen ? (
+            <HiOutlineXMark className="toggle-icon" />
+          ) : (
+            <HiOutlineBars3 className="toggle-icon" />
+          )}
         </button>
       </div>
 
@@ -170,7 +247,11 @@ const Header = () => {
           <div className="mobile-nav-header">
             <div className="mobile-brand-section">
               <div className="mobile-logo-container">
-                <img src={logo} alt="Fin N9ra? Logo" className="mobile-logo-image" />
+                <img
+                  src={logo}
+                  alt="Fin N9ra? Logo"
+                  className="mobile-logo-image"
+                />
                 <div className="mobile-logo-fallback">FN</div>
               </div>
               <div className="mobile-brand-text">
@@ -204,6 +285,20 @@ const Header = () => {
                 <span>Écoles</span>
               </NavLink>
             </li>
+            {isAuthenticated && (
+              <li className="mobile-nav-item">
+                <NavLink
+                  to="/recommendations"
+                  className={({ isActive }) =>
+                    `mobile-nav-link ${isActive ? "active" : ""}`
+                  }
+                  onClick={closeMobileMenu}
+                >
+                  <HiOutlineSparkles className="mobile-nav-icon sparkle-color" />
+                  <span>Conseils IA</span>
+                </NavLink>
+              </li>
+            )}
             <li className="mobile-nav-item">
               <NavLink
                 to="/About"
@@ -229,16 +324,73 @@ const Header = () => {
               </NavLink>
             </li>
 
-
-
-            {/* Mobile - Login/Logout */}
+            {/* Mobile - Login/Logout & Profile */}
             {isAuthenticated ? (
-              <li className="mobile-nav-item">
-                <button onClick={handleLogout} className="mobile-logout-btn">
-                  <HiOutlineArrowRightOnRectangle className="mobile-nav-icon" />
-                  <span>Déconnexion</span>
-                </button>
-              </li>
+              <>
+                <li className="mobile-nav-item mobile-user-info">
+                  <div className="mobile-user-header">
+                    {user?.is_admin ? (
+                      <NavLink
+                        to="/admin/profile"
+                        className="user-avatar-link"
+                        onClick={closeMobileMenu}
+                      >
+                        <div className="user-avatar-container clickable">
+                          {user?.avatar ? (
+                            <img
+                              src={getImageUrl(user.avatar)}
+                              alt={user.name}
+                              className="user-avatar"
+                            />
+                          ) : (
+                            <HiOutlineUserCircle className="user-avatar-placeholder" />
+                          )}
+                        </div>
+                      </NavLink>
+                    ) : (
+                      <NavLink
+                        to="/profile"
+                        className="user-avatar-link"
+                        onClick={closeMobileMenu}
+                      >
+                        <div className="user-avatar-container clickable">
+                          {user?.avatar ? (
+                            <img
+                              src={getImageUrl(user.avatar)}
+                              alt={user.name}
+                              className="user-avatar"
+                            />
+                          ) : (
+                            <HiOutlineUserCircle className="user-avatar-placeholder" />
+                          )}
+                        </div>
+                      </NavLink>
+                    )}
+                    <div className="mobile-user-details">
+                      <span className="user-name">{user?.name}</span>
+                      {user?.is_admin && (
+                        <span className="admin-badge">Administrateur</span>
+                      )}
+                    </div>
+                    {!!user?.is_admin && (
+                      <NavLink
+                        to="/admin/notifications"
+                        className="notification-bell mobile-bell"
+                        onClick={closeMobileMenu}
+                      >
+                        <HiOutlineBell />
+                        <span className="notification-badge"></span>
+                      </NavLink>
+                    )}
+                  </div>
+                </li>
+                <li className="mobile-nav-item">
+                  <button onClick={handleLogout} className="mobile-logout-btn">
+                    <HiOutlineArrowRightOnRectangle className="mobile-nav-icon" />
+                    <span>Déconnexion</span>
+                  </button>
+                </li>
+              </>
             ) : (
               <li className="mobile-nav-item">
                 <NavLink

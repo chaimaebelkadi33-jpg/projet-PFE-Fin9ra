@@ -77,6 +77,13 @@ const AdminSettings = () => {
     }
   };
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   if (loading) {
     return (
       <div className="admin-loading">
@@ -104,7 +111,12 @@ const AdminSettings = () => {
 
       <div className="section-card">
         <div className="section-header">
-          <h2><HiOutlineCog6Tooth /> Paramètres de la plateforme</h2>
+          <h2>
+            <span className="title-left">
+              <HiOutlineCog6Tooth /> Paramètres de la plateforme
+            </span>
+            <span className="current-date-dashboard">{currentDate}</span>
+          </h2>
         </div>
 
         <div className="settings-container">

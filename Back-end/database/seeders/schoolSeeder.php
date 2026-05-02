@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\School;
 use App\Models\Formation;
+use App\Models\School;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 
@@ -12,109 +12,154 @@ class SchoolSeeder extends Seeder
 {
     public function run(): void
     {
-        // Désactiver les événements pour accélérer l'insertion
         School::unguard();
         Formation::unguard();
 
-        // Nettoyer les tables avant d'insérer
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Formation::truncate();
         School::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Lire le fichier JSON
         $jsonPath = database_path('seeders/data/ecoles.json');
         if (!File::exists($jsonPath)) {
             $this->command->error("Fichier ecoles.json introuvable : $jsonPath");
             return;
         }
 
-        $jsonContent = File::get($jsonPath);
-        $ecoles = json_decode($jsonContent, true);
-
+        $ecoles = json_decode(File::get($jsonPath), true);
         if (empty($ecoles)) {
-            $this->command->error("Aucune donnée trouvée dans ecoles.json");
+            $this->command->error('Aucune donnee trouvee dans ecoles.json');
             return;
         }
 
-        $this->command->info("Importation de " . count($ecoles) . " écoles...");
+        $this->command->info('Importation de ' . count($ecoles) . ' ecoles...');
 
         foreach ($ecoles as $ecoleData) {
-            // Créer l'école
+            $classification = is_array($ecoleData['classification_ia'] ?? null) ? $ecoleData['classification_ia'] : [];
+            $admissionData = is_array($ecoleData['admission'] ?? null) ? $ecoleData['admission'] : [];
+            $formationMeta = is_array($ecoleData['formation'] ?? null) ? $ecoleData['formation'] : [];
+            $vieEtudiante = is_array($ecoleData['vie_etudiante'] ?? null) ? $ecoleData['vie_etudiante'] : [];
+            $coordonnees = is_array($ecoleData['coordonnees'] ?? null) ? $ecoleData['coordonnees'] : [];
+            $reputation = is_array($ecoleData['reputation'] ?? null) ? $ecoleData['reputation'] : [];
+
+            $cout = $this->extractCost($ecoleData);
+            $bacMinNote = $admissionData['bac_min_note'] ?? $ecoleData['bac_min_note'] ?? null;
+
             $school = School::create([
-                'nom'          => $ecoleData['nom'] ?? 'Sans nom',
-                'ville'        => $ecoleData['ville'] ?? 'Non spécifiée',
-                'type'         => $ecoleData['type'] ?? 'Non spécifié',
-                'description'  => $ecoleData['description'] ?? null,
+                'nom' => $ecoleData['nom'] ?? 'Sans nom',
+                'short_name' => $ecoleData['short_name'] ?? null,
+                'ville' => $ecoleData['ville'] ?? 'Non specifiee',
+                'type' => $ecoleData['type'] ?? 'Non specifie',
+                'domaine_principal' => $classification['domaine_principal'] ?? $ecoleData['domaine_principal'] ?? null,
+                'categorie_ecole' => $classification['categorie_ecole'] ?? $ecoleData['categorie_ecole'] ?? null,
+                'mots_cles_recherche' => $this->normalizeToArray($classification['mots_cles_recherche'] ?? $ecoleData['mots_cles_recherche'] ?? []),
+                'description' => $ecoleData['description'] ?? null,
                 'presentation' => $ecoleData['presentation'] ?? null,
-                'dureeEtudes'  => $ecoleData['dureeEtudes'] ?? null,
-                'diplome'      => $ecoleData['diplome'] ?? null,
-                'admission'    => $ecoleData['admission'] ?? null,
-                'siteWeb'      => $ecoleData['siteWeb'] ?? null,
-                'contact'      => $ecoleData['contact'] ?? null,
-                'telephone'    => $ecoleData['telephone'] ?? null,
-                'adresse'      => $ecoleData['adresse'] ?? null,
-                'logo'         => $ecoleData['logo'] ?? null,
-                'images'       => $ecoleData['images'] ?? null,
-                'note'         => $ecoleData['note'] ?? 0,
+                'dureeEtudes' => $formationMeta['dureeEtudes'] ?? $ecoleData['dureeEtudes'] ?? null,
+                'diplome' => $formationMeta['diplome'] ?? $ecoleData['diplome'] ?? null,
+                'admission' => is_string($ecoleData['admission'] ?? null) ? $ecoleData['admission'] : ($admissionData['concours_nom'] ?? null),
+                'siteWeb' => $coordonnees['siteWeb'] ?? $ecoleData['siteWeb'] ?? null,
+                'contact' => $coordonnees['contact'] ?? $ecoleData['contact'] ?? null,
+                'telephone' => $coordonnees['telephone'] ?? $ecoleData['telephone'] ?? null,
+                'adresse' => $coordonnees['adresse'] ?? $ecoleData['adresse'] ?? null,
+                'logo' => $ecoleData['logo'] ?? null,
+                'a_internat' => $vieEtudiante['a_internat'] ?? $ecoleData['a_internat'] ?? null,
+                'images' => $ecoleData['images'] ?? null,
+                'note' => $reputation['note'] ?? $ecoleData['note'] ?? 0,
+                'cout' => $cout,
+                'bac_min_note' => $bacMinNote,
+                'prerequis_bac_type' => $this->normalizeToArray($admissionData['prerequis_bac_type'] ?? $ecoleData['prerequis_bac_type'] ?? []),
+                'prerequis_bac_mention' => $admissionData['prerequis_bac_mention'] ?? $ecoleData['prerequis_bac_mention'] ?? null,
+                'debouches' => $this->normalizeToArray($ecoleData['debouches'] ?? []),
             ]);
 
-            $this->command->line("  → École importée : {$school->nom} (ID: {$school->id})");
+            $this->command->line("  -> Ecole importee : {$school->nom} (ID: {$school->id})");
 
-            // Récupérer toutes les formations depuis les différents champs du JSON
-            $formationsList = [];
+            $formations = $this->extractFormations($ecoleData);
 
-            if (!empty($ecoleData['specialites']) && is_array($ecoleData['specialites'])) {
-                foreach ($ecoleData['specialites'] as $spec) {
-                    $formationsList[] = ['nom' => $spec, 'type' => 'Spécialité'];
-                }
-            }
-
-            if (!empty($ecoleData['filiereGestion']) && is_array($ecoleData['filiereGestion'])) {
-                foreach ($ecoleData['filiereGestion'] as $filiere) {
-                    $formationsList[] = ['nom' => $filiere, 'type' => 'Filière Gestion'];
-                }
-            }
-
-            if (!empty($ecoleData['filiereCommerce']) && is_array($ecoleData['filiereCommerce'])) {
-                foreach ($ecoleData['filiereCommerce'] as $filiere) {
-                    $formationsList[] = ['nom' => $filiere, 'type' => 'Filière Commerce'];
-                }
-            }
-
-            if (!empty($ecoleData['licencesProfessionnelles']) && is_array($ecoleData['licencesProfessionnelles'])) {
-                foreach ($ecoleData['licencesProfessionnelles'] as $licence) {
-                    $formationsList[] = ['nom' => $licence, 'type' => 'Licence Professionnelle'];
-                }
-            }
-
-            if (!empty($ecoleData['mastersSpecialisesInitiale']) && is_array($ecoleData['mastersSpecialisesInitiale'])) {
-                foreach ($ecoleData['mastersSpecialisesInitiale'] as $master) {
-                    $formationsList[] = ['nom' => $master, 'type' => 'Master Spécialisé'];
-                }
-            }
-
-            if (!empty($ecoleData['mastersSpecialisesUniversite']) && is_array($ecoleData['mastersSpecialisesUniversite'])) {
-                foreach ($ecoleData['mastersSpecialisesUniversite'] as $master) {
-                    $formationsList[] = ['nom' => $master, 'type' => 'Master Universitaire'];
-                }
-            }
-
-            // Insérer les formations
-            foreach ($formationsList as $formationData) {
+            foreach ($formations as $formationData) {
                 Formation::create([
-                    'school_id'      => $school->id,
-                    'nom'            => $formationData['nom'],
-                    'type'           => $formationData['type'],
-                    'description'    => null,
-                    'duree_mois'     => null,
-                    'niveau_acces'   => null,
+                    'school_id' => $school->id,
+                    'nom' => $formationData['nom'],
+                    'specialites' => $formationData['specialites'] ?? null,
+                    'type' => $formationData['type'],
+                    'description' => $formationData['description'] ?? null,
+                    'duree_mois' => $formationData['duree_mois'] ?? null,
+                    'niveau_acces' => $formationData['niveau_acces'] ?? null,
                 ]);
             }
 
-            $this->command->line("      → " . count($formationsList) . " formations ajoutées.");
+            $this->command->line('      -> ' . count($formations) . ' formations ajoutees.');
         }
 
-        $this->command->info("✅ Importation terminée avec succès !");
+        $this->command->info('Importation terminee avec succes !');
+    }
+
+    private function extractCost(array $ecoleData): int
+    {
+        $rawCost = $ecoleData['frais']['cout'] ?? $ecoleData['cout'] ?? 0;
+
+        if (is_numeric($rawCost)) {
+            return (int) $rawCost;
+        }
+
+        preg_match('/\d+/', str_replace(' ', '', (string) $rawCost), $matches);
+
+        return isset($matches[0]) ? (int) $matches[0] : 0;
+    }
+
+    private function normalizeToArray(array|string|null $value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter($value, fn ($item) => $item !== null && $item !== ''));
+        }
+
+        if (is_string($value) && trim($value) !== '') {
+            return array_values(array_filter(array_map('trim', explode(',', $value))));
+        }
+
+        return [];
+    }
+
+    private function extractFormations(array $ecoleData): array
+    {
+        $formationsList = [];
+
+        if (!empty($ecoleData['formations']) && is_array($ecoleData['formations'])) {
+            foreach ($ecoleData['formations'] as $formation) {
+                $formationsList[] = [
+                    'nom' => $formation['nom'] ?? 'Sans nom',
+                    'type' => $formation['type'] ?? 'Formation',
+                    'description' => $formation['description'] ?? null,
+                    'duree_mois' => $formation['duree_mois'] ?? null,
+                    'niveau_acces' => $formation['niveau_acces'] ?? null,
+                    'specialites' => $formation['specialites'] ?? null,
+                ];
+            }
+        }
+
+        $legacyMapping = [
+            'specialites' => 'Specialite',
+            'filiereGestion' => 'Filiere Gestion',
+            'filiereCommerce' => 'Filiere Commerce',
+            'licencesProfessionnelles' => 'Licence Professionnelle',
+            'mastersSpecialisesInitiale' => 'Master Specialise',
+            'mastersSpecialisesUniversite' => 'Master Universitaire',
+        ];
+
+        foreach ($legacyMapping as $field => $type) {
+            if (empty($ecoleData[$field]) || !is_array($ecoleData[$field])) {
+                continue;
+            }
+
+            foreach ($ecoleData[$field] as $nom) {
+                $formationsList[] = [
+                    'nom' => $nom,
+                    'type' => $type,
+                ];
+            }
+        }
+
+        return $formationsList;
     }
 }

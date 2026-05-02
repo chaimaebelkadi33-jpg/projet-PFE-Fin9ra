@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class school extends Model
+class School extends Model
 {
     /**
      * Les attributs qui sont assignables en masse.
@@ -15,8 +15,12 @@ class school extends Model
      */
     protected $fillable = [
         'nom',
+        'short_name',
         'ville',
         'type',
+        'domaine_principal',
+        'categorie_ecole',
+        'mots_cles_recherche',
         'description',
         'presentation',
         'dureeEtudes',
@@ -27,11 +31,22 @@ class school extends Model
         'telephone',
         'adresse',
         'logo',
+        'a_internat',
         'images',
         'note',
+        'cout',
+        'bac_min_note',
+        'prerequis_bac_type',
+        'prerequis_bac_mention',
+        'debouches',
     ];
-protected $casts = [
-        'images' => 'array', 
+
+    protected $casts = [
+        'images' => 'array',
+        'mots_cles_recherche' => 'array',
+        'prerequis_bac_type' => 'array',
+        'debouches' => 'array',
+        'a_internat' => 'boolean',
     ];
     /**
      * Relation : Une école a plusieurs formations.

@@ -28,13 +28,11 @@ function FormationsTab({ school }) {
     return [];
   };
 
-  // Enrichir les formations avec leurs spécialités parsées
   const formationsEnriched = formations.map((formation) => ({
     ...formation,
     specialitesList: parseSpecialites(formation.specialites),
   }));
 
-  // Séparer les formations par catégorie
   const filieres = formationsEnriched.filter(f => 
     f.type === "Filière" || f.type === "Filière Gestion" || f.type === "Filière Commerce"
   );
@@ -242,19 +240,10 @@ function FormationsTab({ school }) {
           <HiOutlineAcademicCap className="category-icon-hi" /> Formations & Spécialités
         </h3>
 
-        {/* Filières */}
         {renderFormationList(filieres, "Filières", <HiOutlineChartBar className="category-icon-hi" />)}
-        
-        {/* Masters */}
         {renderFormationList(masters, "Masters", <HiOutlineAcademicCap className="category-icon-hi" />)}
-        
-        {/* Licences Professionnelles */}
         {renderFormationList(licences, "Licences Professionnelles", <HiOutlineDocumentText className="category-icon-hi" />)}
-        
-        {/* Spécialités */}
         {renderFormationList(specialites, "Spécialités", <HiOutlineBeaker className="category-icon-hi" />)}
-        
-        {/* Autres formations */}
         {renderFormationList(autres, "Autres Formations", <HiOutlineBookOpen className="category-icon-hi" />)}
       </div>
     </div>

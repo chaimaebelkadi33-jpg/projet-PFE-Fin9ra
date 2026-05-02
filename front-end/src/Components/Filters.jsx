@@ -71,9 +71,13 @@ const Filters = ({
         
         const prices = allSchools
           .map((school) => {
-            const priceStr = school.cout;
-            const match = priceStr?.match(/\d+/);
-            return match ? parseInt(match[0]) : 0;
+            const val = school.cout;
+            if (typeof val === 'number') return val;
+            if (typeof val === 'string') {
+              const match = val.match(/\d+/);
+              return match ? parseInt(match[0]) : 0;
+            }
+            return 0;
           })
           .filter((p) => p > 0);
 

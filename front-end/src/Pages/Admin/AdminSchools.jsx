@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  adminGetSchools, 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  adminGetSchools,
   adminDeleteSchool,
   adminCreateSchool,
-  adminUpdateSchool
-} from '../../Services/api';
-import { 
-  HiOutlineAcademicCap, 
-  HiOutlinePencil, 
-  HiOutlineTrash, 
+  adminUpdateSchool,
+  getImageUrl,
+} from "../../Services/api";
+import {
+  HiOutlineAcademicCap,
+  HiOutlinePencil,
+  HiOutlineTrash,
   HiOutlinePlus,
   HiOutlineStar,
   HiOutlineBuildingLibrary,
@@ -26,9 +27,8 @@ import {
   HiOutlineExclamationTriangle,
   HiOutlineArrowLeft,
   HiOutlinePhoto,
-  HiOutlineTrash as HiOutlineTrashIcon
-} from 'react-icons/hi2';
-import '../../Styles/admin.css';
+} from "react-icons/hi2";
+import "../../Styles/admin.css";
 
 const AdminSchools = () => {
   const navigate = useNavigate();
@@ -36,39 +36,42 @@ const AdminSchools = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSchool, setEditingSchool] = useState(null);
-  
+
   // Custom Delete Confirmation State
   const [deleteConfirm, setDeleteConfirm] = useState({
     show: false,
     id: null,
-    name: ''
+    name: "",
   });
 
   // Logo specifically
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(null);
   const [removeLogo, setRemoveLogo] = useState(false);
+  const [imagesFiles, setImagesFiles] = useState([]);
+  const [imagesPreviews, setImagesPreviews] = useState([]);
+  const [removeImages, setRemoveImages] = useState(false);
 
   const [formData, setFormData] = useState({
-    nom: '',
-    ville: '',
-    type: '',
-    description: '',
-    presentation: '',
-    dureeEtudes: '',
-    diplome: '',
-    admission: '',
-    siteWeb: '',
-    contact: '',
-    telephone: '',
-    adresse: '',
-    note: ''
+    nom: "",
+    ville: "",
+    type: "",
+    description: "",
+    presentation: "",
+    dureeEtudes: "",
+    diplome: "",
+    admission: "",
+    siteWeb: "",
+    contact: "",
+    telephone: "",
+    adresse: "",
+    note: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadSchools();
@@ -78,10 +81,10 @@ const AdminSchools = () => {
     try {
       setLoading(true);
       const response = await adminGetSchools(currentPage);
-      
+
       let schoolsData = [];
       let totalPagesData = 1;
-      
+
       if (response.data && response.data.data) {
         if (response.data.data.data) {
           schoolsData = response.data.data.data;
@@ -96,13 +99,13 @@ const AdminSchools = () => {
       } else {
         schoolsData = [];
       }
-      
+
       setSchools(schoolsData);
       setTotalPages(totalPagesData);
     } catch (error) {
-      console.error('Error loading schools:', error);
-      setError('Erreur lors du chargement des écoles');
-      setTimeout(() => setError(''), 3000);
+      console.error("Error loading schools:", error);
+      setError("Erreur lors du chargement des écoles");
+      setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
     }
@@ -112,28 +115,30 @@ const AdminSchools = () => {
     setDeleteConfirm({
       show: true,
       id,
-      name: nom
+      name: nom,
     });
   };
 
   const handleConfirmDelete = async () => {
     const { id, name } = deleteConfirm;
     setSubmitting(true);
-    setError('');
-    
+    setError("");
+
     try {
       const response = await adminDeleteSchool(id);
       if (response.data && response.data.success) {
         setSuccessMessage(`"${name}" a été supprimé avec succès`);
-        setTimeout(() => setSuccessMessage(''), 3000);
-        setDeleteConfirm({ show: false, id: null, name: '' });
+        setTimeout(() => setSuccessMessage(""), 3000);
+        setDeleteConfirm({ show: false, id: null, name: "" });
         loadSchools();
       } else {
-        setError(response.data?.message || 'Erreur lors de la suppression');
+        setError(response.data?.message || "Erreur lors de la suppression");
       }
     } catch (error) {
-      console.error('Error deleting school:', error);
-      setError(error.response?.data?.message || 'Erreur lors de la suppression');
+      console.error("Error deleting school:", error);
+      setError(
+        error.response?.data?.message || "Erreur lors de la suppression",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -141,25 +146,28 @@ const AdminSchools = () => {
 
   const resetForm = () => {
     setFormData({
-      nom: '',
-      ville: '',
-      type: '',
-      description: '',
-      presentation: '',
-      dureeEtudes: '',
-      diplome: '',
-      admission: '',
-      siteWeb: '',
-      contact: '',
-      telephone: '',
-      adresse: '',
-      note: ''
+      nom: "",
+      ville: "",
+      type: "",
+      description: "",
+      presentation: "",
+      dureeEtudes: "",
+      diplome: "",
+      admission: "",
+      siteWeb: "",
+      contact: "",
+      telephone: "",
+      adresse: "",
+      note: "",
     });
     setEditingSchool(null);
     setLogoFile(null);
     setLogoPreview(null);
     setRemoveLogo(false);
-    setError('');
+    setImagesFiles([]);
+    setImagesPreviews([]);
+    setRemoveImages(false);
+    setError("");
   };
 
   const handleOpenCreate = () => {
@@ -170,51 +178,55 @@ const AdminSchools = () => {
   const handleEdit = (school) => {
     setEditingSchool(school);
     setFormData({
-      nom: school.nom || '',
-      ville: school.ville || '',
-      type: school.type || '',
-      description: school.description || '',
-      presentation: school.presentation || '',
-      dureeEtudes: school.dureeEtudes || '',
-      diplome: school.diplome || '',
-      admission: school.admission || '',
-      siteWeb: school.siteWeb || '',
-      contact: school.contact || '',
-      telephone: school.telephone || '',
-      adresse: school.adresse || '',
-      note: school.note || ''
+      nom: school.nom || "",
+      ville: school.ville || "",
+      type: school.type || "",
+      description: school.description || "",
+      presentation: school.presentation || "",
+      dureeEtudes: school.dureeEtudes || "",
+      diplome: school.diplome || "",
+      admission: school.admission || "",
+      siteWeb: school.siteWeb || "",
+      contact: school.contact || "",
+      telephone: school.telephone || "",
+      adresse: school.adresse || "",
+      note: school.note || "",
     });
-    
+
     // Setup Logo preview if it exists
     setLogoFile(null);
     setRemoveLogo(false);
     if (school.logo) {
-      if (school.logo.startsWith('http')) {
-        setLogoPreview(school.logo);
-      } else if (school.logo.startsWith('/storage/')) {
-        setLogoPreview(`http://127.0.0.1:8000${school.logo}`);
-      } else {
-        setLogoPreview(school.logo); // Default React public folder
-      }
+      setLogoPreview(getImageUrl(school.logo));
     } else {
       setLogoPreview(null);
     }
-    
-    setError('');
+
+    // Setup Gallery images previews
+    setImagesFiles([]);
+    setRemoveImages(false);
+    if (school.images && Array.isArray(school.images)) {
+      setImagesPreviews(school.images.map((img) => getImageUrl(img)));
+    } else {
+      setImagesPreviews([]);
+    }
+
+    setError("");
     setShowModal(true);
   };
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB restriction
-        setError('L\'image ne doit pas dépasser 2 MB');
+      if (file.size > 2 * 1024 * 1024) {
+        // 2MB restriction
+        setError("L'image ne doit pas dépasser 2 MB");
         return;
       }
       setLogoFile(file);
       setLogoPreview(URL.createObjectURL(file));
       setRemoveLogo(false);
-      setError('');
+      setError("");
     }
   };
 
@@ -222,6 +234,33 @@ const AdminSchools = () => {
     setLogoFile(null);
     setLogoPreview(null);
     setRemoveLogo(true);
+  };
+
+  const handleImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      if (files.length > 5) {
+        setError("Maximum 5 images autorisées");
+        return;
+      }
+
+      const tooLarge = files.some((file) => file.size > 2 * 1024 * 1024);
+      if (tooLarge) {
+        setError("Une ou plusieurs images dépassent 2 MB");
+        return;
+      }
+
+      setImagesFiles(files);
+      setImagesPreviews(files.map((file) => URL.createObjectURL(file)));
+      setRemoveImages(false);
+      setError("");
+    }
+  };
+
+  const handleClearImages = () => {
+    setImagesFiles([]);
+    setImagesPreviews([]);
+    setRemoveImages(true);
   };
 
   const handleCloseModal = () => {
@@ -232,27 +271,38 @@ const AdminSchools = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError('');
+    setError("");
 
-    if (!formData.nom.trim() || !formData.ville.trim() || !formData.type.trim()) {
-      setError('Le nom, la ville et le type sont obligatoires');
+    if (
+      !formData.nom.trim() ||
+      !formData.ville.trim() ||
+      !formData.type.trim()
+    ) {
+      setError("Le nom, la ville et le type sont obligatoires");
       setSubmitting(false);
       return;
     }
 
     const formDataObj = new FormData();
-    Object.keys(formData).forEach(key => {
-      formDataObj.append(key, formData[key] === null ? '' : formData[key]);
+    Object.keys(formData).forEach((key) => {
+      formDataObj.append(key, formData[key] === null ? "" : formData[key]);
     });
-    
+
     // Explicitly parse note
-    formDataObj.set('note', formData.note ? parseFloat(formData.note) : 0);
+    formDataObj.set("note", formData.note ? parseFloat(formData.note) : 0);
 
     if (logoFile) {
-      formDataObj.append('logo', logoFile);
+      formDataObj.append("logo", logoFile);
     } else if (removeLogo) {
-      // Pass an empty string to trigger backend logo deletion (based on our controller logic)
-      formDataObj.append('logo', '');
+      formDataObj.append("remove_logo", "1");
+    }
+
+    if (imagesFiles.length > 0) {
+      imagesFiles.forEach((file) => {
+        formDataObj.append("images[]", file);
+      });
+    } else if (removeImages) {
+      formDataObj.append("remove_images", "1");
     }
 
     try {
@@ -260,30 +310,41 @@ const AdminSchools = () => {
       if (editingSchool) {
         response = await adminUpdateSchool(editingSchool.id, formDataObj);
         if (response.data && response.data.success) {
-          setSuccessMessage('École modifiée avec succès');
+          setSuccessMessage("École modifiée avec succès");
         } else {
           // Si l'API retourne du json normal sans "success" flag, on suppose que c'est bon
-          setSuccessMessage('École modifiée avec succès');
+          setSuccessMessage("École modifiée avec succès");
         }
       } else {
         response = await adminCreateSchool(formDataObj);
         if (response.data && (response.data.success || response.data.id)) {
-          setSuccessMessage('École créée avec succès');
+          setSuccessMessage("École créée avec succès");
         } else {
-          setSuccessMessage('École créée avec succès'); // Fallback pour succès global
+          setSuccessMessage("École créée avec succès"); // Fallback pour succès global
         }
       }
-      
-      setTimeout(() => setSuccessMessage(''), 3000);
+
+      setTimeout(() => setSuccessMessage(""), 3000);
       handleCloseModal();
       loadSchools();
     } catch (error) {
-      console.error('Error saving school:', error);
-      setError(error.message || error.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      console.error("Error saving school:", error);
+      setError(
+        error.message ||
+          error.response?.data?.message ||
+          "Erreur lors de l'enregistrement",
+      );
     } finally {
       setSubmitting(false);
     }
   };
+
+  const currentDate = new Date().toLocaleDateString("fr-FR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   if (loading) {
     return (
@@ -298,7 +359,7 @@ const AdminSchools = () => {
     <div className="admin-schools">
       {/* Header with Back Button */}
       <div className="admin-page-header">
-        <button className="btn-back" onClick={() => navigate('/admin')}>
+        <button className="btn-back" onClick={() => navigate("/admin")}>
           <HiOutlineArrowLeft /> Retour au tableau de bord
         </button>
         <div className="admin-actions">
@@ -308,26 +369,28 @@ const AdminSchools = () => {
         </div>
       </div>
 
-      {successMessage && (
-        <div className="alert-success">
-          {successMessage}
-        </div>
-      )}
+      {successMessage && <div className="alert-success">{successMessage}</div>}
 
       {error && !deleteConfirm.show && (
-        <div className="alert-error">
-          {error}
-        </div>
+        <div className="alert-error">{error}</div>
       )}
 
       <div className="section-card">
         <div className="section-header">
-          <h2><HiOutlineBuildingLibrary /> Liste des établissements ({schools.length})</h2>
+          <h2>
+            <span className="title-left">
+              <HiOutlineBuildingLibrary /> Liste des établissements (
+              {schools.length})
+            </span>
+            <span className="current-date-dashboard">{currentDate}</span>
+          </h2>
         </div>
-        
+
         {schools.length === 0 ? (
           <div className="admin-empty">
-            <div className="admin-empty-icon"><HiOutlineAcademicCap /></div>
+            <div className="admin-empty-icon">
+              <HiOutlineAcademicCap />
+            </div>
             <p>Aucun établissement trouvé</p>
           </div>
         ) : (
@@ -349,44 +412,60 @@ const AdminSchools = () => {
                   {schools.map((school) => (
                     <tr key={school.id}>
                       <td>{school.id}</td>
-                      <td style={{ width: '60px', textAlign: 'center' }}>
+                      <td style={{ width: "60px", textAlign: "center" }}>
                         {school.logo ? (
-                          <img 
-                            src={
-                              school.logo.startsWith('http') 
-                                ? school.logo 
-                                : school.logo.startsWith('/storage/') 
-                                  ? `http://127.0.0.1:8000${school.logo}` 
-                                  : school.logo
-                            } 
-                            alt="logo" 
-                            style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover', border: '1px solid rgba(0,255,255,0.1)', display: 'block', margin: '0 auto' }} 
+                          <img
+                            src={getImageUrl(school.logo)}
+                            alt="logo"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "10px",
+                              objectFit: "cover",
+                              border: "1px solid rgba(0,255,255,0.1)",
+                              display: "block",
+                              margin: "0 auto",
+                            }}
                           />
                         ) : (
-                          <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                          <div
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "10px",
+                              background: "rgba(255,255,255,0.05)",
+                              border: "1px dashed rgba(255,255,255,0.2)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#64748b",
+                            }}
+                          >
                             <HiOutlineBuildingLibrary />
                           </div>
                         )}
                       </td>
-                      <td><strong>{school.nom}</strong></td>
+                      <td>
+                        <strong>{school.nom}</strong>
+                      </td>
                       <td>{school.ville}</td>
                       <td>{school.type}</td>
                       <td>
-                        <span className="rating-pill">
-                          <HiOutlineStar className="star-icon" /> {school.note || 0}
-                        </span>
+                        <span className="rating-pill">{school.note || 0}</span>
                       </td>
                       <td className="actions-cell">
-                        <button 
-                          className="btn-edit" 
+                        <button
+                          className="btn-edit"
                           onClick={() => handleEdit(school)}
                           title="Modifier"
                         >
                           <HiOutlinePencil />
                         </button>
-                        <button 
-                          className="btn-delete" 
-                          onClick={() => handleDeleteTrigger(school.id, school.nom)}
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDeleteTrigger(school.id, school.nom)
+                          }
                           title="Supprimer"
                         >
                           <HiOutlineTrash />
@@ -407,15 +486,17 @@ const AdminSchools = () => {
                 >
                   <HiOutlineChevronLeft />
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    className={`page-btn ${currentPage === page ? 'active' : ''}`}
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      className={`page-btn ${currentPage === page ? "active" : ""}`}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
                 <button
                   className="page-btn"
                   disabled={currentPage === totalPages}
@@ -436,22 +517,36 @@ const AdminSchools = () => {
             <div className="modal-header-container">
               <h2>
                 {editingSchool ? <HiOutlinePencil /> : <HiOutlinePlus />}
-                <span>{editingSchool ? 'Modifier' : 'Ajouter'} un établissement</span>
+                <span>
+                  {editingSchool ? "Modifier" : "Ajouter"} un établissement
+                </span>
               </h2>
-              <button className="btn-close" onClick={handleCloseModal}>&times;</button>
+              <button className="btn-close" onClick={handleCloseModal}>
+                &times;
+              </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="premium-form">
               <div className="form-sections-grid">
                 <div className="form-section">
-                  <h3 className="form-section-title"><HiOutlinePhoto /> Identité Visuelle</h3>
+                  <h3 className="form-section-title">
+                    <HiOutlinePhoto /> Identité Visuelle
+                  </h3>
                   <div className="logo-upload-container">
                     <div className="logo-preview-wrapper premium-border">
                       {logoPreview ? (
                         <div className="logo-preview-box">
-                          <img src={logoPreview} alt="Aperçu logo" className="logo-img-preview" />
-                          <button type="button" className="btn-remove-logo" onClick={handleRemoveLogo}>
-                            <HiOutlineTrashIcon />
+                          <img
+                            src={logoPreview}
+                            alt="Aperçu logo"
+                            className="logo-img-preview"
+                          />
+                          <button
+                            type="button"
+                            className="btn-remove-logo"
+                            onClick={handleRemoveLogo}
+                          >
+                            <HiOutlineTrash />
                           </button>
                         </div>
                       ) : (
@@ -462,17 +557,78 @@ const AdminSchools = () => {
                       )}
                     </div>
                     <div className="logo-upload-actions">
-                      <p className="upload-subtitle">Formats acceptés : JPG, PNG, WEBP (Max: 2MB)</p>
+                      <p className="upload-subtitle">
+                        Formats acceptés : JPG, PNG, WEBP (Max: 2MB)
+                      </p>
                       <label className="btn-upload">
                         <HiOutlinePhoto /> Parcourir...
-                        <input type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" hidden onChange={handleLogoChange} />
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                          hidden
+                          onChange={handleLogoChange}
+                        />
                       </label>
+                    </div>
+                  </div>
+
+                  <h3
+                    className="form-section-title"
+                    style={{ marginTop: "20px" }}
+                  >
+                    <HiOutlinePhoto /> Galerie Photos
+                  </h3>
+                  <div className="gallery-upload-container">
+                    <div className="images-preview-grid">
+                      {imagesPreviews.length > 0 ? (
+                        imagesPreviews.map((preview, idx) => (
+                          <div
+                            key={idx}
+                            className="gallery-preview-item premium-border"
+                          >
+                            <img src={preview} alt={`Galerie ${idx}`} />
+                          </div>
+                        ))
+                      ) : (
+                        <div className="gallery-placeholder">
+                          <HiOutlinePhoto className="placeholder-icon" />
+                          <span>Aucune image</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="gallery-upload-actions">
+                      <p className="upload-subtitle">
+                        Jusqu'à 5 images (JPG, PNG, WEBP)
+                      </p>
+                      <div className="gallery-buttons">
+                        <label className="btn-upload">
+                          <HiOutlinePlus /> Sélectionner...
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/jpeg,image/png,image/webp"
+                            hidden
+                            onChange={handleImagesChange}
+                          />
+                        </label>
+                        {imagesPreviews.length > 0 && (
+                          <button
+                            type="button"
+                            className="btn-delete-small"
+                            onClick={handleClearImages}
+                          >
+                            Effacer la galerie
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="form-section">
-                  <h3 className="form-section-title"><HiOutlineBuildingLibrary /> Informations Générales</h3>
+                  <h3 className="form-section-title">
+                    <HiOutlineBuildingLibrary /> Informations Générales
+                  </h3>
                   <div className="form-fields-grid">
                     <div className="form-group">
                       <label>Nom de l'établissement *</label>
@@ -482,7 +638,9 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: École Supérieure..."
                           value={formData.nom}
-                          onChange={(e) => setFormData({...formData, nom: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, nom: e.target.value })
+                          }
                           required
                         />
                       </div>
@@ -495,7 +653,9 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: Casablanca"
                           value={formData.ville}
-                          onChange={(e) => setFormData({...formData, ville: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, ville: e.target.value })
+                          }
                           required
                         />
                       </div>
@@ -508,7 +668,9 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: Public, Privé..."
                           value={formData.type}
-                          onChange={(e) => setFormData({...formData, type: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, type: e.target.value })
+                          }
                           required
                         />
                       </div>
@@ -517,7 +679,9 @@ const AdminSchools = () => {
                 </div>
 
                 <div className="form-section">
-                  <h3 className="form-section-title"><HiOutlineGlobeAlt /> Coordonnées & Contact</h3>
+                  <h3 className="form-section-title">
+                    <HiOutlineGlobeAlt /> Coordonnées & Contact
+                  </h3>
                   <div className="form-fields-grid">
                     <div className="form-group">
                       <label>Site Web</label>
@@ -527,7 +691,12 @@ const AdminSchools = () => {
                           type="url"
                           placeholder="https://..."
                           value={formData.siteWeb}
-                          onChange={(e) => setFormData({...formData, siteWeb: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              siteWeb: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -539,7 +708,12 @@ const AdminSchools = () => {
                           type="email"
                           placeholder="contact@ecole.ma"
                           value={formData.contact}
-                          onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              contact: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -551,11 +725,19 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="+212 ..."
                           value={formData.telephone}
-                          onChange={(e) => setFormData({...formData, telephone: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              telephone: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
-                    <div className="form-group" style={{ gridColumn: 'span 3' }}>
+                    <div
+                      className="form-group"
+                      style={{ gridColumn: "span 3" }}
+                    >
                       <label>Adresse Physique</label>
                       <div className="input-with-icon">
                         <HiOutlineMapPin className="input-icon" />
@@ -563,7 +745,12 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Rue, Quartier, Ville..."
                           value={formData.adresse}
-                          onChange={(e) => setFormData({...formData, adresse: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              adresse: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -571,7 +758,9 @@ const AdminSchools = () => {
                 </div>
 
                 <div className="form-section">
-                  <h3 className="form-section-title"><HiOutlineAcademicCap /> Détails Académiques</h3>
+                  <h3 className="form-section-title">
+                    <HiOutlineAcademicCap /> Détails Académiques
+                  </h3>
                   <div className="form-fields-grid">
                     <div className="form-group">
                       <label>Diplôme délivré</label>
@@ -581,7 +770,12 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: Ingénieur, Master..."
                           value={formData.diplome}
-                          onChange={(e) => setFormData({...formData, diplome: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              diplome: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -593,7 +787,12 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: 5 ans"
                           value={formData.dureeEtudes}
-                          onChange={(e) => setFormData({...formData, dureeEtudes: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              dureeEtudes: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -605,7 +804,12 @@ const AdminSchools = () => {
                           type="text"
                           placeholder="Ex: Concours, Dossier..."
                           value={formData.admission}
-                          onChange={(e) => setFormData({...formData, admission: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              admission: e.target.value,
+                            })
+                          }
                         />
                       </div>
                     </div>
@@ -620,7 +824,9 @@ const AdminSchools = () => {
                           max="5"
                           placeholder="Ex: 4.5"
                           value={formData.note}
-                          onChange={(e) => setFormData({...formData, note: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({ ...formData, note: e.target.value })
+                          }
                         />
                       </div>
                     </div>
@@ -628,31 +834,49 @@ const AdminSchools = () => {
                 </div>
 
                 <div className="form-section">
-                  <h3 className="form-section-title"><HiOutlineDocumentText /> Présentation & Description</h3>
+                  <h3 className="form-section-title">
+                    <HiOutlineDocumentText /> Présentation & Description
+                  </h3>
                   <div className="form-fields-grid full-width">
                     <div className="form-group">
                       <label>Brève Description</label>
                       <div className="input-with-icon">
-                        <HiOutlineDocumentText className="input-icon" style={{ top: '20px' }} />
+                        <HiOutlineDocumentText
+                          className="input-icon"
+                          style={{ top: "20px" }}
+                        />
                         <textarea
                           placeholder="Résumé de l'établissement..."
                           value={formData.description}
-                          onChange={(e) => setFormData({...formData, description: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              description: e.target.value,
+                            })
+                          }
                           rows="3"
-                          style={{ paddingLeft: '50px', paddingTop: '15px' }}
+                          style={{ paddingLeft: "50px", paddingTop: "15px" }}
                         />
                       </div>
                     </div>
                     <div className="form-group">
                       <label>Présentation Détaillée</label>
                       <div className="input-with-icon">
-                        <HiOutlineDocumentText className="input-icon" style={{ top: '20px' }} />
+                        <HiOutlineDocumentText
+                          className="input-icon"
+                          style={{ top: "20px" }}
+                        />
                         <textarea
                           placeholder="Historique, missions, opportunités..."
                           value={formData.presentation}
-                          onChange={(e) => setFormData({...formData, presentation: e.target.value})}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              presentation: e.target.value,
+                            })
+                          }
                           rows="5"
-                          style={{ paddingLeft: '50px', paddingTop: '15px' }}
+                          style={{ paddingLeft: "50px", paddingTop: "15px" }}
                         />
                       </div>
                     </div>
@@ -665,7 +889,11 @@ const AdminSchools = () => {
                   Annuler
                 </button>
                 <button type="submit" disabled={submitting}>
-                  {submitting ? 'Enregistrement...' : (editingSchool ? 'Sauvegarder les modifications' : 'Créer l\'établissement')}
+                  {submitting
+                    ? "Enregistrement..."
+                    : editingSchool
+                      ? "Sauvegarder les modifications"
+                      : "Créer l'établissement"}
                 </button>
               </div>
             </form>
@@ -675,8 +903,14 @@ const AdminSchools = () => {
 
       {/* Custom Delete Confirmation Modal */}
       {deleteConfirm.show && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm({ show: false, id: null, name: '' })}>
-          <div className="modal-content modal-confirm" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={() => setDeleteConfirm({ show: false, id: null, name: "" })}
+        >
+          <div
+            className="modal-content modal-confirm"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="confirm-icon-danger">
               <HiOutlineExclamationTriangle />
             </div>
@@ -684,31 +918,34 @@ const AdminSchools = () => {
             <p className="confirm-message">
               Êtes-vous sûr de vouloir supprimer l'établissement <br />
               <span className="confirm-item-name">{deleteConfirm.name}</span> ?
-              <br /><br />
+              <br />
+              <br />
               Toutes les données associées seront définitivement effacées.
             </p>
-            
+
             {error && (
-              <div className="alert-error" style={{ margin: '0 0 20px 0' }}>
+              <div className="alert-error" style={{ margin: "0 0 20px 0" }}>
                 {error}
               </div>
             )}
 
-            <div className="modal-actions" style={{ justifyContent: 'center' }}>
-              <button 
-                type="button" 
-                onClick={() => setDeleteConfirm({ show: false, id: null, name: '' })}
+            <div className="modal-actions" style={{ justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteConfirm({ show: false, id: null, name: "" })
+                }
                 disabled={submitting}
               >
                 Annuler
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn-danger-large"
                 onClick={handleConfirmDelete}
                 disabled={submitting}
               >
-                {submitting ? 'Suppression...' : 'Confirmer la suppression'}
+                {submitting ? "Suppression..." : "Confirmer la suppression"}
               </button>
             </div>
           </div>

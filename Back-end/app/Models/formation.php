@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class formation extends Model
+class Formation extends Model
 {
     /**
      * Les attributs assignables en masse.

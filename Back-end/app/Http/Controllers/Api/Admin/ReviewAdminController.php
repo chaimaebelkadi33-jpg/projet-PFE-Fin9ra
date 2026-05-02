@@ -12,7 +12,10 @@ class ReviewAdminController extends Controller
     public function index()
     {
         $reviews = Review::with(['user', 'school'])->orderBy('created_at', 'desc')->paginate(20);
-        return response()->json($reviews);
+        return response()->json([
+            'success' => true,
+            'data' => $reviews
+        ]);
     }
 
     // Avis en attente de modération
@@ -22,7 +25,10 @@ class ReviewAdminController extends Controller
             ->where('verified', false)
             ->orderBy('created_at', 'desc')
             ->paginate(20);
-        return response()->json($reviews);
+        return response()->json([
+            'success' => true,
+            'data' => $reviews
+        ]);
     }
 
     // Valider un avis
@@ -42,7 +48,10 @@ class ReviewAdminController extends Controller
         $school->note = round($average, 1);
         $school->save();
 
-        return response()->json(['message' => 'Avis vérifié avec succès']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Avis vérifié avec succès'
+        ]);
     }
 
     // Supprimer un avis
@@ -50,7 +59,10 @@ class ReviewAdminController extends Controller
     {
         $review = Review::find($id);
         if (!$review) {
-            return response()->json(['message' => 'Avis non trouvé'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Avis non trouvé'
+            ], 404);
         }
 
         $schoolId = $review->school_id;
@@ -62,7 +74,10 @@ class ReviewAdminController extends Controller
         $school->note = round($average, 1);
         $school->save();
 
-        return response()->json(['message' => 'Avis supprimé avec succès']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Avis supprimé avec succès'
+        ]);
     }
     public function pendingCount()
 {

@@ -11,14 +11,16 @@ import {
   HiOutlineBuildingLibrary,
   HiOutlineChatBubbleLeftRight,
   HiOutlineUsers,
-  HiOutlineChartBar
+  HiOutlineChartBar,
+  HiOutlineBars3,
+  HiOutlineChevronLeft
 } from 'react-icons/hi2';
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
-  const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [pendingReviewsCount, setPendingReviewsCount] = useState(0);
 
   useEffect(() => {
@@ -30,7 +32,6 @@ const AdminSidebar = () => {
   const loadPendingReviewsCount = async () => {
     try {
       const response = await adminGetPendingReviewsCount();
-      // Handle different response structures
       const count = response.data?.count ?? response.data?.data?.count ?? 0;
       setPendingReviewsCount(count);
     } catch (error) {
@@ -42,20 +43,17 @@ const AdminSidebar = () => {
     { icon: <HiOutlineUser />, label: 'Mon profil', path: '/admin/profile' },
     { icon: <HiOutlineSquares2X2 />, label: 'Dashboard', path: '/admin' },
     { icon: <HiOutlineBuildingLibrary />, label: 'Écoles', path: '/admin/schools' },
-    { icon: <HiOutlineChatBubbleLeftRight />, label: 'Avis', path: '/admin/reviews' },
     { icon: <HiOutlineUsers />, label: 'Utilisateurs', path: '/admin/users' },
-    { icon: <HiOutlineChartBar />, label: 'Statistiques', path: '/admin/stats' },
-    { 
-      icon: <HiOutlineBell />, 
-      label: 'Notifications', 
-      path: '/admin/notifications',
-      badge: pendingReviewsCount > 0 ? pendingReviewsCount : null 
-    },
+    { icon: <HiOutlineChatBubbleLeftRight />, label: 'Avis', path: '/admin/reviews' },
     { icon: <HiOutlineCog6Tooth />, label: 'Paramètres', path: '/admin/settings' },
   ];
 
   const handleNavigation = (path) => {
     navigate(path);
+  };
+
+  const toggleSidebar = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const handleLogout = async () => {
@@ -68,11 +66,12 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div 
-      className={`admin-sidebar ${isHovered ? 'expanded' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`admin-sidebar ${isExpanded ? 'expanded' : ''}`}>
+      {/* Bouton de Toggle */}
+      <div className="sidebar-toggle-btn" onClick={toggleSidebar}>
+        <HiOutlineBars3 />
+      </div>
+
       <div className="sidebar-menu">
         {menuItems.map((item, index) => (
           <div

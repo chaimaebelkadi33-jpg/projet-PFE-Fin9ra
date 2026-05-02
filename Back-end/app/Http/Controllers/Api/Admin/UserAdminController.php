@@ -66,6 +66,44 @@ class UserAdminController extends Controller
     }
 
     /**
+     * Update user information.
+     *
+     * @param  Request  $request
+     * @param  int  $id
+     * @return JsonResponse
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$id,
+            'is_admin' => 'boolean'
+        ]);
+
+        // Prevent self-demotion via update
+        if ($user->id === auth()->id() && isset($validated['is_admin']) && !$validated['is_admin']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous ne pouvez pas retirer vos propres droits administrateur.'
+            ], 403);
+        }
+
+        $user->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur mis à jour avec succès.',
+            'user' => $user
+        ]);
+    }
+
+    /**
      * Remove the specified user from storage.
      *
      * @param  int  $id

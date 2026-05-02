@@ -51,6 +51,7 @@ class ProfileController extends Controller
         $isFavorited = $user->favorites()->where('school_id', $schoolId)->exists();
 
         return response()->json([
+            'success' => true,
             'message' => $isFavorited ? 'Ajouté aux favoris' : 'Retiré des favoris',
             'is_favorited' => $isFavorited
         ]);

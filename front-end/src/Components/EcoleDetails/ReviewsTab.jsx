@@ -1,23 +1,45 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../Context/AuthContext";
 import { useToast } from "../Toast";
-import { HiOutlineXMark, HiOutlineEnvelope, HiOutlineLockClosed, HiOutlineCheckBadge, HiOutlineCheck, HiOutlineStar, HiStar } from "react-icons/hi2";
+import { getImageUrl } from "../../Services/api";
+import { 
+  HiOutlineUserCircle,
+  HiOutlineCheckBadge, 
+  HiOutlineStar, 
+  HiStar,
+  HiOutlineExclamationCircle 
+} from "react-icons/hi2";
 
 function ReviewsTab({ school, addReview, renderStars }) {
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const toast = useToast();
+  
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: "",
-    author: "",
-    email: "",
   });
 
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [tempReview, setTempReview] = useState(null);
-  const [subscriptionMethod, setSubscriptionMethod] = useState(""); // 'email' or 'google'
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscriptionEmail, setSubscriptionEmail] = useState("");
-
   const reviews = school.reviews || [];
+
+  useEffect(() => {
+    if (location.state?.reviewId && reviews.length > 0) {
+      const reviewElement = document.getElementById(`review-${location.state.reviewId}`);
+      if (reviewElement) {
+        setTimeout(() => {
+          reviewElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          reviewElement.classList.add('highlight-review');
+          
+          // Retirer la classe de surbrillance après l'animation
+          setTimeout(() => {
+            reviewElement.classList.remove('highlight-review');
+          }, 3000);
+        }, 100);
+      }
+    }
+  }, [location.state, reviews]);
 
   const calculateAverageRating = (reviews) => {
     if (!reviews || reviews.length === 0) return 0;
@@ -46,134 +68,31 @@ function ReviewsTab({ school, addReview, renderStars }) {
   const handleSubmitReview = (e) => {
     e.preventDefault();
 
-    if (!newReview.comment.trim() || !newReview.author.trim()) {
-      toast.warning("Veuillez remplir tous les champs requis");
+    if (!isAuthenticated) {
+      toast.info("Veuillez vous connecter pour publier un avis");
+      navigate("/login", { state: { from: location.pathname } });
       return;
     }
 
-    // Check if user is subscribed
-    if (!isSubscribed) {
-      // Save the review temporarily and show subscription modal
-      setTempReview({ ...newReview });
-      setShowSubscriptionModal(true);
+    if (!newReview.comment.trim()) {
+      toast.warning("Veuillez entrer un commentaire");
       return;
     }
 
-    // If already subscribed, post the review directly
-    addReview(newReview);
+    // Submit review with user info from context
+    addReview({
+      ...newReview,
+      author: user.name,
+      email: user.email
+    });
 
     // Reset form
     setNewReview({
       rating: 5,
       comment: "",
-      author: "",
-      email: "",
     });
 
     toast.success("Merci pour votre avis ! Il sera publié après modération.");
-  };
-
-  const handleSubscribeWithEmail = () => {
-    if (!subscriptionEmail || !subscriptionEmail.includes("@")) {
-      toast.warning("Veuillez entrer une adresse email valide");
-      return;
-    }
-
-    // Simulate email subscription
-    setIsSubscribed(true);
-    setSubscriptionMethod("email");
-
-    // Submit the review after subscription
-    if (tempReview) {
-      const reviewToSubmit = {
-        ...tempReview,
-        email: subscriptionEmail,
-      };
-      addReview(reviewToSubmit);
-
-      // Reset form
-      setNewReview({
-        rating: 5,
-        comment: "",
-        author: "",
-        email: "",
-      });
-
-      toast.success(
-        "Merci pour votre inscription et votre avis ! Votre avis sera publié après modération."
-      );
-    }
-
-    setShowSubscriptionModal(false);
-    setTempReview(null);
-    setSubscriptionEmail("");
-  };
-
-  const handleSubscribeWithGoogle = () => {
-    // Simulate Google OAuth
-    // In a real app, you would integrate with Google OAuth
-    // For now, simulate successful login
-    const mockGoogleEmail = `${newReview.author
-      .toLowerCase()
-      .replace(/\s+/g, ".")}@gmail.com`;
-
-    setIsSubscribed(true);
-    setSubscriptionMethod("google");
-
-    if (tempReview) {
-      const reviewToSubmit = {
-        ...tempReview,
-        email: mockGoogleEmail,
-        verified: true,
-      };
-      addReview(reviewToSubmit);
-
-      // Reset form
-      setNewReview({
-        rating: 5,
-        comment: "",
-        author: "",
-        email: "",
-      });
-
-      toast.success(
-        "Merci pour votre inscription avec Google ! Votre avis a été publié."
-      );
-    }
-
-    setShowSubscriptionModal(false);
-    setTempReview(null);
-  };
-
-  const closeSubscriptionModal = () => {
-    setShowSubscriptionModal(false);
-    setTempReview(null);
-    setSubscriptionEmail("");
-  };
-
-  const skipSubscription = () => {
-    // Allow posting without subscription but mark as unverified
-    if (tempReview) {
-      addReview({
-        ...tempReview,
-        verified: false,
-      });
-
-      // Reset form
-      setNewReview({
-        rating: 5,
-        comment: "",
-        author: "",
-        email: "",
-      });
-
-      toast.info(
-        "Votre avis a été soumis. Les avis non vérifiés peuvent être mis en attente de modération."
-      );
-    }
-
-    setShowSubscriptionModal(false);
-    setTempReview(null);
   };
 
   const averageRating = calculateAverageRating(reviews);
@@ -182,89 +101,6 @@ function ReviewsTab({ school, addReview, renderStars }) {
 
   return (
     <div className="reviews-tab">
-      {/* Subscription Modal */}
-      {showSubscriptionModal && (
-        <div className="subscription-modal-overlay">
-          <div className="subscription-modal">
-            <div className="modal-header">
-              <h3>Inscription Requise</h3>
-                <HiOutlineXMark className="modal-close-icon-hi" onClick={closeSubscriptionModal} />
-            </div>
-
-            <div className="subscription-modal-content">
-              <p className="modal-description">
-                Pour publier un avis, nous vous recommandons de vous inscrire.
-                Cela permet de vérifier votre identité et d'améliorer la
-                crédibilité des avis.
-              </p>
-
-              <div className="subscription-options">
-                <div className="subscription-option">
-                  <div className="option-header">
-                    <HiOutlineEnvelope className="option-icon-hi" />
-                    <h4 className="option-title">Inscription par Email</h4>
-                  </div>
-                  <p className="option-description">
-                    Inscrivez-vous avec votre adresse email
-                  </p>
-                  <div className="email-input-container">
-                    <input
-                      type="email"
-                      placeholder="votre@email.com"
-                      value={subscriptionEmail}
-                      onChange={(e) => setSubscriptionEmail(e.target.value)}
-                      className="email-input"
-                    />
-                  </div>
-                  <button
-                    onClick={handleSubscribeWithEmail}
-                    className="subscribe-btn email-btn"
-                  >
-                    S'inscrire avec Email
-                  </button>
-                </div>
-
-                <div className="subscription-option">
-                  <div className="option-header">
-                    <HiOutlineLockClosed className="option-icon-hi" />
-                    <h4 className="option-title">Continuer avec Google</h4>
-                  </div>
-                  <p className="option-description">
-                    Inscrivez-vous rapidement avec votre compte Google
-                  </p>
-                  <button
-                    onClick={handleSubscribeWithGoogle}
-                    className="subscribe-btn google-btn"
-                  >
-                    <span className="btn-icon">G</span>
-                    S'inscrire avec Google
-                  </button>
-                </div>
-              </div>
-
-              <div className="modal-footer">
-                <p className="privacy-notice">
-                  En vous inscrivant, vous acceptez nos conditions d'utilisation
-                  et notre politique de confidentialité.
-                </p>
-
-                <div className="modal-actions">
-                  <button onClick={skipSubscription} className="skip-btn">
-                    Publier sans inscription
-                  </button>
-                  <button
-                    onClick={closeSubscriptionModal}
-                    className="cancel-btn"
-                  >
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Ratings Overview */}
       {reviews.length > 0 && (
         <div className="ratings-overview">
@@ -274,15 +110,6 @@ function ReviewsTab({ school, addReview, renderStars }) {
               {renderStars(averageRating)}
             </div>
             <div className="rating-count">{totalReviews} avis</div>
-            {isSubscribed && (
-              <div className="subscription-status">
-                <span className="subscription-badge">
-                  {subscriptionMethod === "email"
-                    ? "📧 Inscrit"
-                    : "🔐 Connecté Google"}
-                </span>
-              </div>
-            )}
           </div>
 
           <div className="rating-breakdown">
@@ -295,7 +122,7 @@ function ReviewsTab({ school, addReview, renderStars }) {
                     style={{
                       width:
                         totalReviews > 0
-                          ? `${(ratingCounts[star] / totalReviews) * 100}%`
+                           ? `${(ratingCounts[star] / totalReviews) * 100}%`
                           : "0%",
                     }}
                   ></div>
@@ -311,9 +138,13 @@ function ReviewsTab({ school, addReview, renderStars }) {
       <div className="add-review-section modern-light-review-container">
         <div className="review-form-header">
           <h3>Donner votre avis</h3>
-          {isSubscribed && (
+          {isAuthenticated ? (
             <span className="already-subscribed">
-              <HiOutlineCheckBadge className="check-icon-hi" /> Vous êtes connecté
+              <HiOutlineCheckBadge className="check-icon-hi" /> Connecté en tant que {user.name}
+            </span>
+          ) : (
+            <span className="guest-info">
+              <HiOutlineExclamationCircle className="info-icon-hi" /> Connectez-vous pour partager votre expérience
             </span>
           )}
         </div>
@@ -327,24 +158,6 @@ function ReviewsTab({ school, addReview, renderStars }) {
               </div>
               <span className="rating-value">{newReview.rating}/5</span>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="author">Votre nom ou pseudo :</label>
-            <input
-              type="text"
-              id="author"
-              className="modern-input"
-              value={newReview.author}
-              onChange={(e) =>
-                setNewReview((prev) => ({
-                  ...prev,
-                  author: e.target.value,
-                }))
-              }
-              placeholder="Ex: Sarah T."
-              required
-            />
           </div>
 
           <div className="form-group">
@@ -373,7 +186,7 @@ function ReviewsTab({ school, addReview, renderStars }) {
 
           <div className="form-actions-submit">
             <button type="submit" className="btn-modern-light-submit">
-              {isSubscribed
+              {isAuthenticated
                 ? "Soumettre mon avis"
                 : "Se connecter pour publier"}
             </button>
@@ -401,17 +214,28 @@ function ReviewsTab({ school, addReview, renderStars }) {
             {reviews.map((review) => (
               <div
                 key={review.id}
+                id={`review-${review.id}`}
                 className={`review-card ${
                   review.verified ? "verified" : "unverified"
                 }`}
               >
                 <div className="review-header">
                   <div className="reviewer-info">
-                    <span className="reviewer-avatar">
-                      {review.author.charAt(0)}
-                    </span>
+                    <div className="reviewer-avatar-container">
+                      {review.user?.avatar ? (
+                        <img 
+                          src={getImageUrl(review.user.avatar)} 
+                          alt={review.user.name} 
+                          className="reviewer-avatar-img"
+                        />
+                      ) : (
+                        <div className="reviewer-avatar-placeholder">
+                          {review.user?.name ? review.user.name.charAt(0).toUpperCase() : <HiOutlineUserCircle />}
+                        </div>
+                      )}
+                    </div>
                     <div className="reviewer-name-container">
-                      <span className="reviewer-name">{review.author}</span>
+                      <span className="reviewer-name">{review.user?.name || "Utilisateur"}</span>
                       {review.verified && (
                         <span className="verified-badge"><HiOutlineCheckBadge className="badge-icon-hi" /> Vérifié</span>
                       )}
@@ -431,16 +255,8 @@ function ReviewsTab({ school, addReview, renderStars }) {
 
                 <div className="review-footer">
                   <span className="review-date">
-                    {new Date(review.date).toLocaleDateString("fr-FR")}
+                    {new Date(review.created_at).toLocaleDateString("fr-FR")}
                   </span>
-                  {review.email && (
-                    <span className="review-email">
-                      <HiOutlineEnvelope className="email-icon-hi" />{" "}
-                      {review.email.includes("@gmail.com")
-                        ? "Inscrit avec Google"
-                        : "Inscrit par email"}
-                    </span>
-                  )}
                 </div>
               </div>
             ))}

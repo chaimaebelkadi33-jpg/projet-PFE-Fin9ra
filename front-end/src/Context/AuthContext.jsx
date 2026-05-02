@@ -7,6 +7,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [favorites, setFavorites] = useState([]); // List of favorited school IDs
     const [loading, setLoading] = useState(true);
     const [token, setToken] = useState(localStorage.getItem('token'));
 
@@ -22,6 +23,11 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await getUser();
             setUser(response.data);
+            
+            // If the user has favorites, store their IDs
+            if (response.data.favorites) {
+                setFavorites(response.data.favorites.map(f => f.id));
+            }
         } catch (error) {
             console.error('Error fetching user:', error);
             localStorage.removeItem('token');
@@ -40,6 +46,12 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('token', newToken);
                 setToken(newToken);
                 setUser(user);
+                
+                // Load favorites if available
+                if (user.favorites) {
+                    setFavorites(user.favorites.map(f => f.id));
+                }
+                
                 return { success: true, user, token: newToken };
             } else {
                 return { success: false, error: 'Données invalides' };
@@ -52,6 +64,12 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const loginWithToken = async (newToken) => {
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        // fetchUser() is called automatically via useEffect when token changes
+    };
+
     const register = async (name, email, password, passwordConfirmation) => {
         try {
             const response = await apiRegister({ name, email, password, password_confirmation: passwordConfirmation });
@@ -59,6 +77,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('token', newToken);
             setToken(newToken);
             setUser(user);
+            setFavorites([]); // New user has no favorites
             return { success: true };
         } catch (error) {
             console.error('Register error:', error);
@@ -69,6 +88,10 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshUser = async () => {
+        setLoading(true);
+        await fetchUser();
+    };
     const logout = async () => {
         try {
             await apiLogout();
@@ -78,16 +101,22 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('token');
             setToken(null);
             setUser(null);
+            setFavorites([]);
         }
     };
 
     const value = {
         user,
+        setUser,
+        favorites,
+        setFavorites,
         loading,
         isAuthenticated: !!user,
         login,
+        loginWithToken,
         register,
         logout,
+        refreshUser,
     };
 
     return (
@@ -95,4 +124,4 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
-};
+};

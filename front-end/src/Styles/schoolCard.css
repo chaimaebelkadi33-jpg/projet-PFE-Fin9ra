@@ -57,6 +57,43 @@
   transition: transform 0.5s ease;
 }
 
+.favorite-btn {
+  background: #f8fafc;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 10px; /* Squircle/Rounded corner instead of full circle for professional look */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e2e8f0;
+}
+
+.favorite-btn:hover {
+  transform: translateY(-2px);
+  color: #ef4444;
+  background: #fff1f2;
+  border-color: #fecaca;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.12);
+}
+
+.favorite-btn.active {
+  color: #ef4444;
+  background: #fff1f2;
+  border-color: #fecaca;
+  animation: heartBeat 0.3s ease-in-out;
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
 /* Card Content - Clean layout */
 .card-content {
   padding: 10px;
@@ -82,18 +119,26 @@
   min-height: 2.6em;
 }
 
+/* Info Row for Badge and Favorite */
+.card-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
 /* Type Badge - Minimal */
 .type-badge {
   background: #f0f7ff;
   color: #4a90e2;
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-block;
-  margin-bottom: 5px;
-  align-self: flex-start;
   border: 1px solid #d0e3ff;
+  letter-spacing: 0.3px;
 }
 
 /* Location - Clean */

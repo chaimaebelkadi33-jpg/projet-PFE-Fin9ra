@@ -12,10 +12,36 @@ class SchoolController extends Controller
 {
     // ========== ROUTES PUBLIQUES ==========
     
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $schools = School::with(['formations', 'reviews'])->get();
+            $query = School::with(['formations', 'reviews']);
+
+            if ($request->filled('ville')) {
+                $query->where('ville', $request->ville);
+            }
+
+            if ($request->filled('type')) {
+                $query->where('type', $request->type);
+            }
+
+            if ($request->filled('specialite')) {
+                $query->whereHas('formations', function ($q) use ($request) {
+                    $q->where('nom', 'like', "%{$request->specialite}%");
+                });
+            }
+
+            $sortBy = $request->get('sortBy', 'note');
+            if ($sortBy === 'nom') {
+                $query->orderBy('nom', 'asc');
+            } else {
+                // Par défaut ou par note
+                $query->orderBy('note', 'desc');
+            }
+
+            $perPage = $request->get('per_page', 9);
+            $schools = $query->paginate($perPage);
+            
             return response()->json([
                 'success' => true,
                 'data' => $schools
@@ -23,7 +49,7 @@ class SchoolController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors du chargement des écoles'
+                'message' => 'Erreur lors du chargement des écoles: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -103,7 +129,7 @@ class SchoolController extends Controller
                 });
             }
 
-            $schools = $query->with(['formations', 'reviews'])->get();
+            $schools = $query->with(['formations', 'reviews'])->paginate(9);
 
             return response()->json([
                 'success' => true,
@@ -154,11 +180,28 @@ class SchoolController extends Controller
                 'telephone' => 'nullable|string',
                 'adresse' => 'nullable|string',
                 'note' => 'nullable|numeric|min:0|max:5',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             ]);
 
             // Valeur par défaut pour la note
             if (empty($validated['note']) && $validated['note'] !== 0) {
                 $validated['note'] = 0;
+            }
+
+            // Gestion du Logo
+            if ($request->hasFile('logo')) {
+                $logoPath = $request->file('logo')->store('images/logos', 'public');
+                $validated['logo'] = $logoPath;
+            }
+
+            // Gestion des Images multiples
+            if ($request->hasFile('images')) {
+                $imagePaths = [];
+                foreach ($request->file('images') as $image) {
+                    $imagePaths[] = $image->store('images/schools', 'public');
+                }
+                $validated['images'] = $imagePaths;
             }
 
             $school = School::create($validated);
@@ -209,7 +252,46 @@ class SchoolController extends Controller
                 'telephone' => 'nullable|string',
                 'adresse' => 'nullable|string',
                 'note' => 'nullable|numeric|min:0|max:5',
+                'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             ]);
+
+            // Gestion du Logo
+            if ($request->hasFile('logo')) {
+                // Optionnel : supprimer l'ancien logo
+                if ($school->logo) {
+                    \Storage::disk('public')->delete($school->logo);
+                }
+                $validated['logo'] = $request->file('logo')->store('images/logos', 'public');
+            } elseif ($request->has('remove_logo') && $request->remove_logo) {
+                if ($school->logo) {
+                    \Storage::disk('public')->delete($school->logo);
+                }
+                $validated['logo'] = null;
+            }
+
+            // Gestion des Images multiples
+            if ($request->hasFile('images')) {
+                // On peut soit ajouter, soit remplacer. Ici on remplace pour simplifier
+                if ($school->images) {
+                    foreach ($school->images as $oldImage) {
+                        \Storage::disk('public')->delete($oldImage);
+                    }
+                }
+                
+                $imagePaths = [];
+                foreach ($request->file('images') as $image) {
+                    $imagePaths[] = $image->store('images/schools', 'public');
+                }
+                $validated['images'] = $imagePaths;
+            } elseif ($request->has('remove_images') && $request->remove_images) {
+                if ($school->images) {
+                    foreach ($school->images as $oldImage) {
+                        \Storage::disk('public')->delete($oldImage);
+                    }
+                }
+                $validated['images'] = [];
+            }
 
             $school->update($validated);
             

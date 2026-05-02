@@ -3,22 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { 
   adminGetUsers, 
-  adminToggleUserRole, 
+  adminUpdateUser, 
   adminDeleteUser 
 } from '../../Services/api';
 import { 
   HiOutlineUserGroup, 
   HiOutlineArrowLeft, 
   HiOutlineTrash,
+  HiOutlinePencil,
   HiOutlineShieldCheck,
   HiOutlineUser,
   HiOutlineMagnifyingGlass,
   HiOutlineChevronLeft,
   HiOutlineChevronRight,
   HiOutlineExclamationTriangle,
-  HiOutlineIdentification
+  HiOutlineXMark,
+  HiOutlineEnvelope
 } from 'react-icons/hi2';
 import '../../Styles/admin.css';
+import '../../Styles/adminUsers.css';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
@@ -32,6 +35,15 @@ const AdminUsers = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Edit/Modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    is_admin: false
+  });
 
   // Deletion state
   const [deleteConfirm, setDeleteConfirm] = useState({
@@ -61,24 +73,31 @@ const AdminUsers = () => {
     }
   };
 
-  const handleToggleRole = async (userId) => {
-    if (userId === currentUser?.id) {
-      setError("Vous ne pouvez pas modifier votre propre rôle.");
-      setTimeout(() => setError(null), 3000);
-      return;
-    }
+  const handleEditClick = (user) => {
+    setEditingUser(user);
+    setEditFormData({
+      name: user.name,
+      email: user.email,
+      is_admin: user.is_admin
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
 
     try {
-      setSubmitting(true);
-      const response = await adminToggleUserRole(userId);
+      const response = await adminUpdateUser(editingUser.id, editFormData);
       if (response.data && response.data.success) {
-        setSuccessMessage(response.data.message);
-        setTimeout(() => setSuccessMessage(''), 3000);
+        setSuccessMessage('Utilisateur mis à jour avec succès');
+        setShowEditModal(false);
         loadUsers();
+        setTimeout(() => setSuccessMessage(''), 3000);
       }
     } catch (error) {
-      setError(error.response?.data?.message || 'Erreur lors du changement de rôle');
-      setTimeout(() => setError(null), 3000);
+      setError(error.response?.data?.message || 'Erreur lors de la mise à jour');
     } finally {
       setSubmitting(false);
     }
@@ -112,6 +131,13 @@ const AdminUsers = () => {
     }
   };
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <div className="admin-users">
       {/* Header with Back Button */}
@@ -134,20 +160,31 @@ const AdminUsers = () => {
       )}
 
       <div className="section-card">
-        <div className="section-header">
-          <h2><HiOutlineUserGroup /> Gestion des Utilisateurs</h2>
+        <div className="section-header-users">
+          <div className="header-top-row">
+            <h2 className="users-title">
+              <span className="title-left">
+                <HiOutlineUserGroup /> Gestion des Utilisateurs
+              </span>
+              <span className="current-date-dashboard">{currentDate}</span>
+            </h2>
+          </div>
           
-          <div className="search-bar premium">
-            <HiOutlineMagnifyingGlass className="search-icon" />
-            <input 
-              type="text" 
-              placeholder="Rechercher par nom ou email..." 
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
+          <div className="header-actions-row">
+            <div className="search-bar-container">
+              <div className="search-bar premium">
+                <HiOutlineMagnifyingGlass className="search-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Rechercher par nom ou email..." 
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -179,9 +216,6 @@ const AdminUsers = () => {
                     <tr key={u.id} className={u.id === currentUser?.id ? 'current-user-row' : ''}>
                       <td>
                         <div className="user-info-cell">
-                          <div className={`user-avatar-mini ${u.is_admin ? 'admin' : ''}`}>
-                            {u.name.charAt(0).toUpperCase()}
-                          </div>
                           <strong>{u.name} {u.id === currentUser?.id && <span className="self-tag">(Vous)</span>}</strong>
                         </div>
                       </td>
@@ -199,13 +233,11 @@ const AdminUsers = () => {
                       </td>
                       <td className="actions-cell">
                         <button 
-                          className={`btn-role-toggle ${u.is_admin ? 'demote' : 'promote'}`}
-                          onClick={() => handleToggleRole(u.id)}
-                          disabled={submitting || u.id === currentUser?.id}
-                          title={u.is_admin ? "Rétrograder en utilisateur" : "Promouvoir en administrateur"}
+                          className="btn-edit" 
+                          onClick={() => handleEditClick(u)}
+                          title="Modifier l'utilisateur"
                         >
-                          <HiOutlineIdentification />
-                          {u.is_admin ? 'Rétrograder' : 'Promouvoir'}
+                          <HiOutlinePencil />
                         </button>
                         <button 
                           className="btn-delete" 
@@ -253,6 +285,74 @@ const AdminUsers = () => {
         )}
       </div>
 
+      {/* Edit User Modal */}
+      {showEditModal && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-container">
+              <h2>
+                <HiOutlinePencil />
+                <span>Modifier l'utilisateur</span>
+              </h2>
+              <button className="btn-close" onClick={() => setShowEditModal(false)}>
+                <HiOutlineXMark />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="premium-form">
+              <div className="form-group">
+                <label>Nom complet</label>
+                <div className="input-with-icon">
+                  <HiOutlineUser className="input-icon" />
+                  <input
+                    type="text"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Adresse Email</label>
+                <div className="input-with-icon">
+                  <HiOutlineEnvelope className="input-icon" />
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Rôle de l'utilisateur</label>
+                <div className="role-toggle-container">
+                  <div className={`role-option ${!editFormData.is_admin ? 'active' : ''}`} onClick={() => setEditFormData({...editFormData, is_admin: false})}>
+                    <HiOutlineUser />
+                    <span>Utilisateur</span>
+                  </div>
+                  <div className={`role-option admin ${editFormData.is_admin ? 'active' : ''}`} onClick={() => setEditFormData({...editFormData, is_admin: true})}>
+                    <HiOutlineShieldCheck />
+                    <span>Administrateur</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowEditModal(false)}>
+                  Annuler
+                </button>
+                <button type="submit" disabled={submitting}>
+                  {submitting ? 'Mise à jour...' : 'Sauvegarder'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Custom Delete Confirmation Modal */}
       {deleteConfirm.show && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm({ show: false, id: null, name: '' })}>
@@ -265,7 +365,7 @@ const AdminUsers = () => {
               Êtes-vous sûr de vouloir supprimer l'utilisateur <br />
               <span className="confirm-item-name">{deleteConfirm.name}</span> ?
               <br /><br />
-              Cette action supprimera également tous les avis et données associés à ce compte.
+              Cette action supprimera également tous les avis associés.
             </p>
 
             <div className="modal-actions" style={{ justifyContent: 'center' }}>
@@ -289,151 +389,6 @@ const AdminUsers = () => {
         </div>
       )}
 
-      <style jsx>{`
-        .search-bar.premium {
-          position: relative;
-          display: flex;
-          align-items: center;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 50px;
-          padding: 0 20px;
-          width: 350px;
-          transition: all 0.3s ease;
-        }
-
-        .search-bar.premium:focus-within {
-          border-color: #00ffff;
-          background: rgba(0, 255, 255, 0.05);
-          box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
-        }
-
-        .search-icon {
-          color: #94a3b8;
-          font-size: 1.2rem;
-        }
-
-        .search-bar.premium input {
-          background: transparent;
-          border: none;
-          color: white;
-          padding: 12px 15px;
-          width: 100%;
-          outline: none;
-        }
-
-        .user-info-cell {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        }
-
-        .user-avatar-mini {
-          width: 40px;
-          height: 40px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          color: #94a3b8;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-avatar-mini.admin {
-          background: rgba(0, 255, 255, 0.1);
-          color: #00ffff;
-          border-color: rgba(0, 255, 255, 0.2);
-        }
-
-        .self-tag {
-          color: #00ffff;
-          font-size: 0.8rem;
-          margin-left: 5px;
-          opacity: 0.8;
-        }
-
-        .current-user-row td {
-          background: rgba(0, 255, 255, 0.02) !important;
-        }
-
-        .role-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 14px;
-          border-radius: 50px;
-          font-size: 0.85rem;
-          font-weight: 700;
-        }
-
-        .role-badge.admin {
-          background: rgba(16, 185, 129, 0.1);
-          color: #10b981;
-          border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .role-badge.user {
-          background: rgba(148, 163, 184, 0.1);
-          color: #94a3b8;
-          border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-
-        .btn-role-toggle {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px;
-          border-radius: 12px;
-          font-size: 0.85rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          border: 1px solid transparent;
-        }
-
-        .btn-role-toggle.promote {
-          background: rgba(0, 255, 255, 0.1);
-          color: #00ffff;
-          border-color: rgba(0, 255, 255, 0.2);
-        }
-
-        .btn-role-toggle.promote:hover {
-          background: #00ffff;
-          color: #002147;
-          transform: translateY(-2px);
-        }
-
-        .btn-role-toggle.demote {
-          background: rgba(245, 158, 11, 0.1);
-          color: #f59e0b;
-          border-color: rgba(245, 158, 11, 0.2);
-        }
-
-        .btn-role-toggle.demote:hover {
-          background: #f59e0b;
-          color: #002147;
-          transform: translateY(-2px);
-        }
-
-        .btn-role-toggle:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          transform: none !important;
-        }
-
-        @media (max-width: 900px) {
-          .section-header {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 20px;
-          }
-          .search-bar.premium {
-            width: 100%;
-          }
-        }
-      `}</style>
     </div>
   );
 };

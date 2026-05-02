@@ -1,8 +1,20 @@
 import axios from 'axios';
 
+export const BASE_URL = 'http://127.0.0.1:8000';
+export const API_URL = `${BASE_URL}/api`;
+export const STORAGE_URL = `${BASE_URL}/storage`;
+
+export const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    // Remove leading slash if it exists and prepend storage URL
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${STORAGE_URL}/${cleanPath}`;
+};
+
 // Configuration de base
 const API = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -16,6 +28,9 @@ API.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        if (config.data instanceof FormData) {
+            delete config.headers['Content-Type'];
+        }
         return config;
     },
     (error) => Promise.reject(error)
@@ -23,8 +38,8 @@ API.interceptors.request.use(
 
 // ========== Routes publiques ==========
 
-// Récupérer toutes les écoles
-export const getSchools = () => API.get('/schools');
+// Récupérer les écoles avec pagination et filtres
+export const getSchools = (params = {}) => API.get('/schools', { params });
 
 // Récupérer une école par ID
 export const getSchoolById = (id) => API.get(`/schools/${id}`);
@@ -37,6 +52,10 @@ export const searchSchools = (filters) => API.post('/schools/search', filters);
 
 // Récupérer les avis d'une école
 export const getSchoolReviews = (schoolId) => API.get(`/schools/${schoolId}/reviews`);
+
+// Recommandations personnalisées
+export const getRecommendationFilters = () => API.get('/recommendations/filters');
+export const getRecommendations = (data) => API.post('/recommendations', data);
 
 // ========== Authentification ==========
 
@@ -52,8 +71,14 @@ export const logout = () => API.post('/logout');
 // Récupérer l'utilisateur connecté
 export const getUser = () => API.get('/user');
 
-// Mettre à jour le profil (nom, email)
-export const updateProfile = (userData) => API.put('/user/profile', userData);
+// Mettre à jour le profil (nom, email, avatar)
+export const updateProfile = (userData) => {
+  if (userData instanceof FormData) {
+    userData.append('_method', 'PUT');
+    return API.post('/user/profile', userData);
+  }
+  return API.put('/user/profile', userData);
+};
 
 // Mettre à jour le mot de passe
 export const updatePassword = (passwordData) => API.put('/user/password', passwordData);
@@ -62,6 +87,9 @@ export const updatePassword = (passwordData) => API.put('/user/password', passwo
 
 // Ajouter un avis
 export const addReview = (reviewData) => API.post('/reviews', reviewData);
+
+// Modifier un avis
+export const updateReview = (reviewId, reviewData) => API.put(`/reviews/${reviewId}`, reviewData);
 
 // Supprimer un avis
 export const deleteReview = (reviewId) => API.delete(`/reviews/${reviewId}`);
@@ -111,6 +139,7 @@ export const adminGetStats = () => API.get('/admin/stats');
 export const adminGetUsers = (page = 1, search = '') => 
     API.get(`/admin/users?page=${page}&search=${search}`);
 export const adminToggleUserRole = (id) => API.put(`/admin/users/${id}/role`);
+export const adminUpdateUser = (id, data) => API.put(`/admin/users/${id}`, data);
 export const adminDeleteUser = (id) => API.delete(`/admin/users/${id}`);
 
 // === Paramètres ===

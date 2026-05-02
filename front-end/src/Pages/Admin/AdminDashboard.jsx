@@ -14,6 +14,7 @@ import {
   HiOutlinePresentationChartLine 
 } from 'react-icons/hi2';
 import '../../Styles/admin.css';
+import '../../Styles/adminDashboard.css';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -47,26 +48,37 @@ const AdminDashboard = () => {
     );
   }
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <div className="admin-dashboard">
-      {/* 4 Stats Cards */}
+      {/* 3 Main Clickable Stats Cards */}
       <div className="admin-stats">
-        <div className="stat-card">
-          <div className="stat-icon"><HiOutlineUsers /></div>
+        <div className="stat-card clickable" onClick={() => navigate('/admin/users')}>
+          <div className="stat-icon users"><HiOutlineUsers /></div>
           <div className="stat-info">
             <h3>{stats.totalUsers?.toLocaleString() || 0}</h3>
             <p>Utilisateurs</p>
           </div>
+          <div className="stat-arrow">→</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon"><HiOutlineAcademicCap /></div>
+
+        <div className="stat-card clickable" onClick={() => navigate('/admin/schools')}>
+          <div className="stat-icon schools"><HiOutlineAcademicCap /></div>
           <div className="stat-info">
             <h3>{stats.totalSchools?.toLocaleString() || 0}</h3>
             <p>Écoles</p>
           </div>
+          <div className="stat-arrow">→</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon"><HiOutlineStar /></div>
+
+        <div className="stat-card clickable" onClick={() => navigate('/admin/reviews')}>
+          <div className="stat-icon reviews"><HiOutlineStar /></div>
           <div className="stat-info">
             <h3>{stats.totalReviews?.toLocaleString() || 0}</h3>
             <p>Avis</p>
@@ -74,57 +86,100 @@ const AdminDashboard = () => {
               <span className="stat-badge">{pendingReviews} en attente</span>
             )}
           </div>
+          <div className="stat-arrow">→</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon"><HiOutlineChartBar /></div>
-          <div className="stat-info">
-            <h3>{stats.satisfaction || 75}%</h3>
-            <p>Taux de satisfaction</p>
+      </div>
+
+      {/* Detailed Stats Section */}
+      <div className="dashboard-details-section">
+        <div className="section-header">
+          <h2>
+            <span className="title-left">
+              <HiOutlinePresentationChartLine /> Performance de la plateforme
+            </span>
+            <span className="current-date-dashboard">{currentDate}</span>
+          </h2>
+        </div>
+
+        <div className="stats-performance-grid">
+          <div className="performance-card">
+            <h4>Modération des Avis</h4>
+            <div className="performance-content">
+              <div className="perf-item">
+                <span className="label">En attente</span>
+                <div className="progress-container">
+                  <div className="progress-bar warning" style={{ width: `${Math.min(100, (stats.pendingReviews / (stats.totalReviews || 1)) * 100)}%` }}></div>
+                </div>
+                <span className="value">{stats.pendingReviews}</span>
+              </div>
+              <div className="perf-item">
+                <span className="label">Traités</span>
+                <div className="progress-container">
+                  <div className="progress-bar success" style={{ width: `${Math.max(0, 100 - (stats.pendingReviews / (stats.totalReviews || 1)) * 100)}%` }}></div>
+                </div>
+                <span className="value">{stats.totalReviews - stats.pendingReviews}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="performance-card">
+            <h4>Qualité & Satisfaction</h4>
+            <div className="performance-content">
+              <div className="perf-item">
+                <span className="label">Note moyenne</span>
+                <div className="rating-visual">
+                  <span className="big-rating">{stats.avgRating || 0}</span>
+                  <div className="stars-container">
+                    <span className="stars">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <HiOutlineStar 
+                          key={star} 
+                          className={star <= Math.round(stats.avgRating) ? 'filled' : 'empty'} 
+                        />
+                      ))}
+                    </span>
+                    <span className="satisfaction-text">{stats.satisfaction || 0}% de satisfaction</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Breakdown Sections */}
+        <div className="breakdown-grid">
+          <div className="breakdown-card">
+            <h4>Nombre d'écoles par ville</h4>
+            <div className="breakdown-list">
+              {stats.schoolsByCity?.map((item, index) => (
+                <div key={index} className="breakdown-item">
+                  <span className="item-name" style={{ textTransform: 'capitalize' }}>{item.ville?.toLowerCase()}</span>
+                  <div className="item-track">
+                    <div className="item-bar" style={{ width: `${(item.total / stats.totalSchools) * 100}%` }}></div>
+                  </div>
+                  <span className="item-count">{item.total}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="breakdown-card">
+            <h4>Nombre d'écoles par type</h4>
+            <div className="breakdown-list">
+              {stats.schoolsByType?.map((item, index) => (
+                <div key={index} className="breakdown-item">
+                  <span className="item-name" style={{ textTransform: 'capitalize' }}>{item.type?.toLowerCase()}</span>
+                  <div className="item-track">
+                    <div className="item-bar type-bar" style={{ width: `${(item.total / stats.totalSchools) * 100}%` }}></div>
+                  </div>
+                  <span className="item-count">{item.total}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 4 Management Cards (2x2 grid) */}
-      <div className="admin-cards-grid">
-        <div className="admin-card" onClick={() => navigate('/admin/schools')}>
-          <div className="card-icon"><HiOutlineBuildingLibrary /></div>
-          <div className="card-content">
-            <h3>Gérer les Écoles</h3>
-            <p>Ajouter, modifier ou supprimer des établissements</p>
-          </div>
-          <div className="card-arrow">→</div>
-        </div>
-
-        <div className="admin-card" onClick={() => navigate('/admin/users')}>
-          <div className="card-icon"><HiOutlineUserGroup /></div>
-          <div className="card-content">
-            <h3>Gérer les Utilisateurs</h3>
-            <p>Gérer les comptes utilisateurs et leurs rôles</p>
-          </div>
-          <div className="card-arrow">→</div>
-        </div>
-
-        <div className="admin-card" onClick={() => navigate('/admin/reviews')}>
-          <div className="card-icon"><HiOutlineChatBubbleLeftRight /></div>
-          <div className="card-content">
-            <h3>Gérer les Avis</h3>
-            <p>Modérer et valider les avis des utilisateurs</p>
-            {pendingReviews > 0 && (
-              <span className="card-badge">{pendingReviews} en attente</span>
-            )}
-          </div>
-          <div className="card-arrow">→</div>
-        </div>
-
-        <div className="admin-card" onClick={() => navigate('/admin/stats')}>
-          <div className="card-icon"><HiOutlinePresentationChartLine /></div>
-          <div className="card-content">
-            <h3>Consulter les Statistiques</h3>
-            <p>Voir les statistiques détaillées de la plateforme</p>
-          </div>
-          <div className="card-arrow">→</div>
-        </div>
-      </div>
     </div>
   );
 };

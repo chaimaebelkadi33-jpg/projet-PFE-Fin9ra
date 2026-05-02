@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getSchools, getFilters } from "../Services/api";
 import Filters from "../Components/Filters";
 import SchoolCard from "../Components/SchoolCard";
+import { useToast } from "../Components/Toast";
 import "../Styles/ecoles.css";
 
 // Helper function to remove accents for accent-insensitive search
@@ -15,10 +16,14 @@ const normalizeString = (str) => {
 };
 
 // Extract price from string (ex: "15000 MAD/an" -> 15000)
-const extractPrice = (priceStr) => {
-  if (!priceStr) return 0;
-  const match = priceStr.match(/\d+/g);
-  return match ? parseInt(match.join("")) : 0;
+const extractPrice = (priceVal) => {
+  if (!priceVal && priceVal !== 0) return 0;
+  if (typeof priceVal === 'number') return priceVal;
+  if (typeof priceVal === 'string') {
+    const match = priceVal.match(/\d+/g);
+    return match ? parseInt(match.join("")) : 0;
+  }
+  return 0;
 };
 
 // Memoized SchoolCard component for better performance
@@ -98,7 +103,10 @@ function Ecoles() {
     types: [],
     specialites: []
   });
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [viewMode, setViewMode] = useState("grid");
+  const toast = useToast();
 
   // LOCAL filters - for UI changes only (tous inactifs par défaut)
   const [localFilters, setLocalFilters] = useState({
@@ -125,16 +133,15 @@ function Ecoles() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Load schools and filter options on mount
+  // Load filter options on mount
   useEffect(() => {
-    loadSchools();
     loadFilterOptions();
   }, []);
 
-  // Reset to page 1 when filters or sort change
+  // Load schools when page, filters or sort change
   useEffect(() => {
-    setCurrentPage(1);
-  }, [appliedFilters, sortBy]);
+    loadSchools(currentPage, appliedFilters, sortBy);
+  }, [currentPage, appliedFilters, sortBy]);
 
   const loadFilterOptions = useCallback(async () => {
     try {
@@ -151,137 +158,83 @@ function Ecoles() {
       });
     } catch (error) {
       console.error("Error loading filter options:", error);
+      toast.error("Erreur lors du chargement des filtres");
     }
   }, []);
 
-  const loadSchools = useCallback(async () => {
+  const loadSchools = useCallback(async (page = 1, filters = appliedFilters, sort = sortBy) => {
     try {
       setLoading(true);
-      const response = await getSchools();
-      
-      // Gestion des différentes structures de réponse
-      let allSchools = [];
-      if (response.data && response.data.data) {
-        // Structure avec { success: true, data: [...] }
-        allSchools = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        // Structure directe [...]
-        allSchools = response.data;
-      } else {
-        allSchools = [];
-      }
-      
-      setSchools(allSchools);
-
-      // Calculate price range from schools
-      const prices = allSchools
-        .map((school) => extractPrice(school.cout))
-        .filter((price) => !isNaN(price) && price > 0);
-
-      const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-      const maxPrice = prices.length > 0 ? Math.max(...prices) : 20000;
-      setPriceRange({ min: minPrice, max: maxPrice });
-
-      // Initial filters: tous vides ou null (pas de filtre actif par défaut)
-      const initialFilters = {
-        ville: "",
-        type: "",
-        specialite: "",
-        minPrice: null,
-        maxPrice: null,
+      const params = {
+        page,
+        ville: filters.ville,
+        type: filters.type,
+        specialite: filters.specialite,
+        sortBy: sort
       };
+      
+      const response = await getSchools(params);
+      
+      if (response.data) {
+        // The data is either in response.data.data (paginated) or response.data (simple array)
+        let schoolList = [];
+        let totalP = 1;
+        let totalI = 0;
 
-      setLocalFilters(initialFilters);
-      setAppliedFilters(initialFilters);
+        const result = response.data.data || response.data;
+        
+        if (result.data && Array.isArray(result.data)) {
+          schoolList = result.data;
+          totalP = result.last_page || 1;
+          totalI = result.total || 0;
+        } else if (Array.isArray(result)) {
+          schoolList = result;
+          totalP = 1;
+          totalI = result.length;
+        } else if (Array.isArray(response.data)) {
+          schoolList = response.data;
+          totalP = 1;
+          totalI = response.data.length;
+        }
+
+        setSchools(schoolList);
+        setTotalPages(totalP);
+        setTotalItems(totalI);
+
+        if (schoolList.length > 0) {
+          const prices = schoolList
+            .map((school) => extractPrice(school.cout))
+            .filter((price) => !isNaN(price) && price > 0);
+
+          if (prices.length > 0) {
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            setPriceRange(prev => ({ 
+              min: Math.min(prev.min, minPrice), 
+              max: Math.max(prev.max, maxPrice) 
+            }));
+          }
+        }
+      }
     } catch (error) {
       console.error("Error loading schools:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Erreur lors du chargement des écoles";
+      toast.error(errorMsg);
       setSchools([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [appliedFilters, sortBy]);
 
-  // Filtered schools calculation
-  const filteredSchools = useMemo(() => {
-    let results = [...schools];
-
-    // Apply ville filter
-    if (appliedFilters.ville && appliedFilters.ville !== "") {
-      const normalizedVille = normalizeString(appliedFilters.ville);
-      results = results.filter((school) => {
-        const schoolVille = normalizeString(school.ville);
-        return schoolVille === normalizedVille;
-      });
-    }
-
-    // Apply type filter
-    if (appliedFilters.type && appliedFilters.type !== "") {
-      const normalizedType = normalizeString(appliedFilters.type);
-      results = results.filter((school) => {
-        const schoolType = normalizeString(school.type);
-        return schoolType === normalizedType;
-      });
-    }
-
-    // Apply specialite filter (check in formations)
-    if (appliedFilters.specialite && appliedFilters.specialite !== "") {
-      const normalizedSpecialite = normalizeString(appliedFilters.specialite);
-      results = results.filter((school) => {
-        if (school.formations && Array.isArray(school.formations)) {
-          return school.formations.some((formation) => {
-            const formationName = normalizeString(formation.nom);
-            return formationName.includes(normalizedSpecialite);
-          });
-        }
-        return false;
-      });
-    }
-
-    // Apply price filter
-    if (appliedFilters.minPrice !== null && appliedFilters.minPrice !== "" &&
-        appliedFilters.maxPrice !== null && appliedFilters.maxPrice !== "") {
-      results = results.filter((school) => {
-        const price = extractPrice(school.cout);
-        return price >= appliedFilters.minPrice && price <= appliedFilters.maxPrice;
-      });
-    }
-
-    // Apply sorting
-    results.sort((a, b) => {
-      switch (sortBy) {
-        case "note":
-          return (b.note || 0) - (a.note || 0);
-        case "nom":
-          return (a.nom || "").localeCompare(b.nom || "", "fr", {
-            sensitivity: "base",
-          });
-        case "price":
-          return extractPrice(a.cout) - extractPrice(b.cout);
-        default:
-          return 0;
-      }
-    });
-
-    return results;
-  }, [schools, appliedFilters, sortBy]);
-
-  // Paginated schools
-  const paginatedSchools = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredSchools.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredSchools, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredSchools.length / itemsPerPage);
-  
   const schoolStats = useMemo(() => ({
-    total: schools.length,
-    filtered: filteredSchools.length,
-    hasResults: filteredSchools.length > 0,
+    total: totalItems,
+    filtered: totalItems,
+    hasResults: schools.length > 0,
     currentPage,
     totalPages,
-    startItem: filteredSchools.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0,
-    endItem: Math.min(currentPage * itemsPerPage, filteredSchools.length),
-  }), [schools.length, filteredSchools.length, currentPage, totalPages, itemsPerPage]);
+    startItem: totalItems > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0,
+    endItem: Math.min(currentPage * itemsPerPage, totalItems),
+  }), [schools.length, totalItems, currentPage, totalPages, itemsPerPage]);
 
   const handleFilterChange = useCallback((newFilters) => {
     setLocalFilters(newFilters);
@@ -289,6 +242,7 @@ function Ecoles() {
 
   const handleApplyFilters = useCallback(() => {
     setAppliedFilters(localFilters);
+    setCurrentPage(1); // Reset to first page on new filter
   }, [localFilters]);
 
   const resetFilters = useCallback(() => {
@@ -302,6 +256,7 @@ function Ecoles() {
     setLocalFilters(resetFiltersState);
     setAppliedFilters(resetFiltersState);
     setCurrentPage(1);
+    // loadSchools will be triggered by useEffect since appliedFilters/currentPage changed
   }, []);
 
   const handleSortChange = useCallback((sortValue) => {
@@ -354,7 +309,7 @@ function Ecoles() {
           {schoolStats.hasResults ? (
             <>
               <div className={`schools-${viewMode}`}>
-                {paginatedSchools.map((school, index) => (
+                {schools.map((school, index) => (
                   <div 
                     key={school.id} 
                     className="school-item"

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -71,25 +72,42 @@ class AuthController extends Controller
         return response()->json($request->user());
     }
 
-    // Mettre à jour le profil (nom, email)
+    // Mettre à jour le profil (nom, email, avatar)
     public function updateProfile(Request $request)
     {
         $user = $request->user();
 
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-        ]);
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ];
 
-        $user->update([
+        // Les utilisateurs Google ne peuvent pas changer leur email
+        if (!$user->google_id) {
+            $rules['email'] = 'required|string|email|max:255|unique:users,email,' . $user->id;
+        }
+
+        $request->validate($rules);
+
+        $data = [
             'name' => $request->name,
-            'email' => $request->email,
-        ]);
+        ];
+
+        if (!$user->google_id && $request->has('email')) {
+            $data['email'] = $request->email;
+        }
+
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $avatarPath;
+        }
+
+        $user->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Profil mis à jour avec succès',
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -117,5 +135,48 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Mot de passe mis à jour avec succès'
         ]);
+    }
+
+    // --- Google Auth ---
+    public function redirectToGoogle()
+    {
+        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        $driver = Socialite::driver('google');
+        return $driver->stateless()->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+            $driver = Socialite::driver('google');
+            $googleUser = $driver->stateless()->user();
+            
+            $user = User::where('email', $googleUser->getEmail())->first();
+            
+            if ($user) {
+                $user->update([
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                ]);
+            }
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            // Redirection vers le frontend avec le token
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            return redirect()->away($frontendUrl . '/auth/callback?token=' . $token);
+            
+        } catch (\Exception $e) {
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            return redirect()->away($frontendUrl . '/login?error=google_auth_failed');
+        }
     }
 }

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../Context/AuthContext';
-import { updateProfile, updatePassword } from '../../Services/api';
+import { getImageUrl, updateProfile, updatePassword } from '../../Services/api';
 import { 
   HiOutlineUser, 
   HiOutlineEnvelope, 
@@ -8,16 +8,18 @@ import {
   HiOutlineCalendarDays, 
   HiOutlineShieldCheck,
   HiOutlineCheckCircle,
-  HiOutlineExclamationTriangle
+  HiOutlineExclamationTriangle,
+  HiOutlinePencil
 } from 'react-icons/hi2';
 import '../../Styles/admin.css';
 
 const AdminProfile = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
   });
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar ? getImageUrl(user.avatar) : null);
   const [passwordData, setPasswordData] = useState({
     current_password: '',
     password: '',
@@ -28,6 +30,16 @@ const AdminProfile = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!user) return;
+
+    setProfileData({
+      name: user.name || '',
+      email: user.email || '',
+    });
+    setAvatarPreview(user.avatar ? getImageUrl(user.avatar) : null);
+  }, [user]);
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -37,12 +49,52 @@ const AdminProfile = () => {
     try {
       const response = await updateProfile(profileData);
       if (response.data.success) {
+        if (response.data.user) {
+          setUser(response.data.user);
+        }
         setSuccess('Profil mis à jour avec succès');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Erreur lors de la mise à jour');
     } finally {
       setLoading(false);
+      setTimeout(() => setSuccess(''), 3000);
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarPreview(previewUrl);
+    setLoading(true);
+    setSuccess('');
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('name', profileData.name || user?.name || '');
+
+      if (!user?.google_id) {
+        formData.append('email', profileData.email || user?.email || '');
+      }
+
+      formData.append('avatar', file);
+
+      const response = await updateProfile(formData);
+      if (response.data.success && response.data.user) {
+        setUser(response.data.user);
+        setAvatarPreview(getImageUrl(response.data.user.avatar));
+        setSuccess('Photo de profil mise a jour');
+      }
+    } catch (err) {
+      setAvatarPreview(user?.avatar ? getImageUrl(user.avatar) : null);
+      setError(err.response?.data?.message || "Erreur lors de l'enregistrement de la photo");
+    } finally {
+      setLoading(false);
+      e.target.value = '';
+      URL.revokeObjectURL(previewUrl);
       setTimeout(() => setSuccess(''), 3000);
     }
   };
@@ -76,6 +128,13 @@ const AdminProfile = () => {
     }
   };
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <div className="admin-profile-container">
       {/* Alert Messages */}
@@ -95,9 +154,23 @@ const AdminProfile = () => {
         <div className="profile-overview">
           <div className="section-card profile-card">
             <div className="profile-avatar-container">
-              <div className="profile-avatar">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
+              <label className="profile-avatar admin-avatar-upload" htmlFor="admin-avatar-upload">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt={user?.name} className="admin-profile-avatar-img" />
+                ) : (
+                  user?.name?.charAt(0).toUpperCase()
+                )}
+                <span className="admin-avatar-edit">
+                  <HiOutlinePencil />
+                </span>
+              </label>
+              <input
+                id="admin-avatar-upload"
+                type="file"
+                accept="image/*"
+                className="admin-avatar-input"
+                onChange={handleAvatarChange}
+              />
               <div className="profile-status-badge">Admin</div>
             </div>
             
@@ -130,7 +203,12 @@ const AdminProfile = () => {
           {/* Personal Information Form */}
           <div className="section-card">
             <div className="section-header">
-              <h2><HiOutlineUser /> Informations personnelles</h2>
+              <h2>
+                <span className="title-left">
+                  <HiOutlineUser /> Informations personnelles
+                </span>
+                <span className="current-date-dashboard">{currentDate}</span>
+              </h2>
             </div>
             <form onSubmit={handleProfileSubmit} className="form-grid">
               <div className="form-group">

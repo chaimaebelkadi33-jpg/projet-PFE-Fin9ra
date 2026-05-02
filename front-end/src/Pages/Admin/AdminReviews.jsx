@@ -51,14 +51,24 @@ const AdminReviews = () => {
       let reviewsData = [];
       let totalPagesData = 1;
       
-      if (response.data && response.data.data) {
-        reviewsData = response.data.data;
-        totalPagesData = response.data.last_page || 1;
-      } else if (Array.isArray(response.data)) {
-        reviewsData = response.data;
-        totalPagesData = 1;
-      } else if (response.data && response.data.success && response.data.data) {
-        reviewsData = response.data.data;
+      // Handle the case where the response is wrapped in { success: true, data: { data: [], last_page: 5 } }
+      if (response.data && response.data.success && response.data.data) {
+        const paginated = response.data.data;
+        if (paginated.data && Array.isArray(paginated.data)) {
+          reviewsData = paginated.data;
+          totalPagesData = paginated.last_page || 1;
+        } else if (Array.isArray(paginated)) {
+          reviewsData = paginated;
+        }
+      } 
+      // Handle direct pagination object or array
+      else if (response.data) {
+        if (response.data.data && Array.isArray(response.data.data)) {
+          reviewsData = response.data.data;
+          totalPagesData = response.data.last_page || 1;
+        } else if (Array.isArray(response.data)) {
+          reviewsData = response.data;
+        }
       }
       
       setReviews(reviewsData);
@@ -182,6 +192,13 @@ const AdminReviews = () => {
   };
 
 
+  const currentDate = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   return (
     <div className="admin-reviews-page">
       {/* Header with Back Button */}
@@ -197,7 +214,12 @@ const AdminReviews = () => {
       <div className="section-card">
         <div className="section-header-moderation">
           <div className="header-top">
-            <h2><HiOutlineChatBubbleLeftRight /> Modération des Avis</h2>
+            <h2 className="unified-admin-title">
+              <span className="title-left">
+                <HiOutlineChatBubbleLeftRight /> Modération des Avis
+              </span>
+              <span className="current-date-dashboard">{currentDate}</span>
+            </h2>
             <div className="moderation-tabs">
               <button 
                 className={`mod-tab ${activeTab === 'pending' ? 'active' : ''}`}
@@ -282,16 +304,16 @@ const AdminReviews = () => {
                       </td>
                       <td className="school-name-cell">{review.school?.nom || 'N/A'}</td>
                       <td>
-                        <div className={`rating-group ${getSentimentClass(review.note)}`}>
+                        <div className={`rating-group ${getSentimentClass(review.rating)}`}>
                           <div className="premium-stars">
-                            {renderStars(review.note)}
+                            {renderStars(review.rating)}
                           </div>
-                          <span className="rating-badge">{review.note}/5</span>
+                          <span className="rating-badge">{review.rating}/5</span>
                         </div>
                       </td>
                       <td className="comment-cell">
                         <div className="comment-bubble">
-                          <p>"{review.commentaire}"</p>
+                          <p>"{review.comment}"</p>
                         </div>
                       </td>
                       <td>
@@ -301,7 +323,7 @@ const AdminReviews = () => {
                       </td>
                       <td className="actions-cell">
                         <div className="action-btns-group">
-                          {!review.email_verified_at && activeTab === 'pending' && (
+                          {!review.verified && activeTab === 'pending' && (
                             <button 
                               className="btn-action approve" 
                               onClick={() => handleVerify(review.id)}

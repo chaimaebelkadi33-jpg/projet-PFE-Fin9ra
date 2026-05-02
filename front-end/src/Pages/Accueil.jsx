@@ -110,20 +110,21 @@ function Accueil() {
   const loadSchools = async () => {
     try {
       setLoading(true);
-      const response = await getSchools();
+      // Fetch more schools for the home page (e.g., 20) to have a better selection for carousel/featured
+      const response = await getSchools({ per_page: 20 });
       
-      // Gestion des différentes structures de réponse
       let schools = [];
-      if (response.data && response.data.data) {
-        schools = response.data.data;
-      } else if (Array.isArray(response.data)) {
+      if (response.data && response.data.success) {
+        // Handling Laravel pagination structure
+        const paginatedData = response.data.data;
+        schools = paginatedData.data || [];
+      } else if (response.data && Array.isArray(response.data)) {
         schools = response.data;
-      } else {
-        schools = [];
       }
       
       setAllSchools(schools);
 
+      // Sort by rating for featured schools
       const topRated = [...schools]
         .sort((a, b) => (b.note || 0) - (a.note || 0))
         .slice(0, 8);

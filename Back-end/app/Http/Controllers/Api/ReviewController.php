@@ -59,6 +59,36 @@ class ReviewController extends Controller
         return response()->json($review, 201);
     }
 
+    // Modifier un avis (seulement par l'auteur)
+    public function update(Request $request, $id)
+    {
+        $review = Review::find($id);
+        if (!$review) {
+            return response()->json(['message' => 'Avis non trouvé'], 404);
+        }
+
+        if ($review->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|min:3',
+        ]);
+
+        $review->update([
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'verified' => false, // Repasse en non vérifié après modification
+        ]);
+
+        $this->updateSchoolAverageRating($review->school_id);
+
+        $review->load('school');
+
+        return response()->json($review);
+    }
+
     // Supprimer un avis (seulement par l'auteur ou admin)
     public function destroy($id)
     {

@@ -30,6 +30,10 @@ const extractPayload = (responseData) => {
     return responseData.data;
   }
 
+  if (responseData && responseData.data && Array.isArray(responseData.data.data)) {
+    return responseData.data.data;
+  }
+
   return [];
 };
 
@@ -116,7 +120,7 @@ const SearchBar = ({ onSearch, onFilter }) => {
   useEffect(() => {
     const loadSchoolsForSuggestions = async () => {
       try {
-        const response = await getSchools();
+        const response = await getSchools({ per_page: 1000 });
         setAllSchools(extractPayload(response.data));
         setLoading(false);
       } catch (error) {
