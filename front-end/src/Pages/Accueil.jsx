@@ -204,16 +204,33 @@ function Accueil() {
   );
 
   const handleSearch = useCallback(
-    (normalizedQuery, originalQuery) => {
+    (normalizedQuery, originalQuery, apiResults) => {
       setSearchQuery(normalizedQuery);
-      if (!normalizedQuery.trim() && !filters.ville && !filters.specialite && !filters.type) {
+      
+      const hasActiveParams = normalizedQuery.trim() || filters.ville || filters.specialite || filters.type;
+      
+      if (!hasActiveParams) {
         setIsSearching(false);
         setSearchResults([]);
         return;
       }
+
       setIsSearching(true);
-      const results = performLocalSearch(normalizedQuery, filters);
-      setSearchResults(results);
+      
+      if (apiResults) {
+        // Use results from SearchBar's API call
+        let results = [];
+        if (apiResults.success && apiResults.data) {
+          results = apiResults.data.data || apiResults.data || [];
+        } else if (Array.isArray(apiResults)) {
+          results = apiResults;
+        }
+        setSearchResults(results.slice(0, 8));
+      } else {
+        // Fallback to local search if no API results (shouldn't happen with current SearchBar)
+        const results = performLocalSearch(normalizedQuery, filters);
+        setSearchResults(results);
+      }
     },
     [filters, performLocalSearch]
   );
@@ -221,16 +238,19 @@ function Accueil() {
   const handleFilter = useCallback(
     (newFilters) => {
       setFilters(newFilters);
-      if (!searchQuery.trim() && !newFilters.ville && !newFilters.specialite && !newFilters.type) {
+      
+      const hasActiveParams = searchQuery.trim() || newFilters.ville || newFilters.specialite || newFilters.type;
+      
+      if (!hasActiveParams) {
         setIsSearching(false);
         setSearchResults([]);
         return;
       }
+      
       setIsSearching(true);
-      const results = performLocalSearch(searchQuery, newFilters);
-      setSearchResults(results);
+      // Results will be updated via handleSearch when SearchBar's debouncedSearch completes
     },
-    [searchQuery, performLocalSearch]
+    [searchQuery]
   );
 
   const clearFilter = useCallback(

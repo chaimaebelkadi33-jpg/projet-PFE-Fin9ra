@@ -13,6 +13,7 @@ import {
   HiOutlineWrench,
   HiOutlineCpuChip
 } from "react-icons/hi2";
+import "../../Styles/overviewTab.css";
 
 function OverviewTab({ school }) {
   // Fonction pour obtenir le label de la catégorie
@@ -107,76 +108,42 @@ function OverviewTab({ school }) {
   return (
     <div className="overview-tab">
       {/* Section classification */}
-      {(school.categorie_ecole || school.domaine_principal || school.short_name || school.a_internat === 1) && (
-        <div className="classification-section" style={{ marginBottom: '24px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+      {(school.categorie_ecole || school.domaine_principal || school.short_name || school.a_internat) && (
+        <div className="classification-section">
+          <div className="classification-badges">
             {school.short_name && (
-              <span style={{
-                background: '#002147',
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: 'bold',
-                fontSize: '14px'
-              }}>
+              <span className="badge-short-name">
                 {school.short_name}
               </span>
             )}
             {school.categorie_ecole && (
-              <span style={{
-                background: getCategoryLabel(school.categorie_ecole).color,
-                color: 'white',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}>
+              <span 
+                className="badge-category"
+                style={{
+                  background: getCategoryLabel(school.categorie_ecole).color,
+                  boxShadow: `0 2px 4px ${getCategoryLabel(school.categorie_ecole).color}33`
+                }}
+              >
                 {getCategoryLabel(school.categorie_ecole).icon}
                 {getCategoryLabel(school.categorie_ecole).label}
               </span>
             )}
             {school.domaine_principal && (
-              <span style={{
-                background: '#e3f2fd',
-                color: '#1976d2',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                fontWeight: '500',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}>
-                <HiOutlineAcademicCap style={{ marginRight: '6px' }} />
-                Domaine: {school.domaine_principal}
+              <span className="badge-domaine">
+                <HiOutlineAcademicCap />
+                {school.domaine_principal}
               </span>
             )}
             {school.sous_domaine && (
-              <span style={{
-                background: '#f3e5f5',
-                color: '#7b1fa2',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}>
-                <HiOutlineBookOpen style={{ marginRight: '6px' }} />
+              <span className="badge-sous-domaine">
+                <HiOutlineBookOpen />
                 {school.sous_domaine}
               </span>
             )}
-            {school.a_internat === 1 && (
-              <span style={{
-                background: '#e8f5e9',
-                color: '#2e7d32',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontSize: '14px',
-                display: 'inline-flex',
-                alignItems: 'center'
-              }}>
-                <HiOutlineBuildingLibrary style={{ marginRight: '6px' }} />
-                Internat disponible
+            {school.a_internat && (
+              <span className="badge-internat">
+                <HiOutlineBuildingLibrary />
+                Internat
               </span>
             )}
           </div>
@@ -185,7 +152,10 @@ function OverviewTab({ school }) {
 
       {/* Description */}
       <div className="description-section">
-        <h3><HiOutlineBookOpen className="presentation-icon-hi" /> Présentation</h3>
+        <h3>
+          <HiOutlineBookOpen /> 
+          Présentation de l'établissement
+        </h3>
         <p className="school-description">
           {school.presentation || school.description}
         </p>
@@ -193,37 +163,30 @@ function OverviewTab({ school }) {
 
       {/* Section prérequis */}
       {(prerequisBacType.length > 0 || school.prerequis_bac_mention || school.bac_min_note) && (
-        <div className="prerequis-section" style={{
-          background: '#f8f9fa',
-          padding: '16px 20px',
-          borderRadius: '12px',
-          marginBottom: '24px'
-        }}>
-          <h3 style={{ color: '#002147', marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center' }}>
-            <HiOutlineAcademicCap style={{ marginRight: '8px' }} />
+        <div className="prerequis-section">
+          <h3>
+            <HiOutlineAcademicCap />
             Prérequis d'admission
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+          <div className="prerequis-grid">
             {prerequisBacType.length > 0 && (
-              <div>
-                <strong style={{ color: '#666', fontSize: '12px' }}>Baccalauréat requis</strong>
-                <p style={{ margin: 0, color: '#002147' }}>
-                  {prerequisBacType.join(', ')}
-                </p>
+              <div className="prerequis-item">
+                <strong>Baccalauréat requis</strong>
+                <p>{prerequisBacType.join(', ')}</p>
               </div>
             )}
             {school.prerequis_bac_mention && (
-              <div>
-                <strong style={{ color: '#666', fontSize: '12px' }}>Mention minimale</strong>
-                <p style={{ margin: 0, color: '#002147', fontWeight: 'bold' }}>
+              <div className="prerequis-item">
+                <strong>Mention minimale</strong>
+                <p style={{ fontWeight: 'bold' }}>
                   {getMentionLabel(school.prerequis_bac_mention)}
                 </p>
               </div>
             )}
             {school.bac_min_note && (
-              <div>
-                <strong style={{ color: '#666', fontSize: '12px' }}>Note minimale</strong>
-                <p style={{ margin: 0, color: '#e67e22', fontWeight: 'bold', fontSize: '16px' }}>{school.bac_min_note}/20</p>
+              <div className="prerequis-item">
+                <strong>Note minimale</strong>
+                <p className="note-minimale">{school.bac_min_note}/20</p>
               </div>
             )}
           </div>
@@ -232,21 +195,14 @@ function OverviewTab({ school }) {
 
       {/* Section mots-clés */}
       {motsCles.length > 0 && (
-        <div className="keywords-section" style={{ marginBottom: '24px' }}>
-          <h3 style={{ color: '#002147', marginBottom: '12px', fontSize: '1.1rem', display: 'flex', alignItems: 'center' }}>
-            <HiOutlineRocketLaunch style={{ marginRight: '8px' }} />
+        <div className="keywords-section">
+          <h3>
+            <HiOutlineRocketLaunch />
             Domaines de spécialisation
           </h3>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="keywords-list">
             {motsCles.slice(0, 10).map((keyword, index) => (
-              <span key={index} style={{
-                background: '#eef2ff',
-                color: '#4338ca',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '500'
-              }}>
+              <span key={index} className="keyword-tag">
                 #{keyword}
               </span>
             ))}
@@ -255,75 +211,45 @@ function OverviewTab({ school }) {
       )}
 
       {/* Quick Info Grid */}
-      <div className="quick-info-grid" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '16px', 
-        marginBottom: '24px' 
-      }}>
-        <div className="info-card" style={{ 
-          padding: '16px', 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-        }}>
-          <HiOutlineBuildingLibrary className="info-icon-hi" style={{ fontSize: '24px', color: '#00cde1' }} />
+      <div className="quick-info-grid">
+        <div className="info-card card-type">
+          <div className="info-icon-wrapper">
+            <HiOutlineBuildingLibrary />
+          </div>
           <div className="info-content">
-            <h4 style={{ margin: '8px 0 4px', fontSize: '14px', color: '#666' }}>Type d'établissement</h4>
-            <p style={{ margin: 0, fontWeight: 'bold', color: '#002147' }}>{school.type}</p>
+            <h4>Type</h4>
+            <p>{school.type}</p>
           </div>
         </div>
 
-        <div className="info-card" style={{ 
-          padding: '16px', 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-        }}>
-          <HiOutlineClock className="info-icon-hi" style={{ fontSize: '24px', color: '#00cde1' }} />
+        <div className="info-card card-duration">
+          <div className="info-icon-wrapper">
+            <HiOutlineClock />
+          </div>
           <div className="info-content">
-            <h4 style={{ margin: '8px 0 4px', fontSize: '14px', color: '#666' }}>Durée des études</h4>
-            <p style={{ margin: 0, fontWeight: 'bold', color: '#002147' }}>{school.dureeEtudes}</p>
+            <h4>Durée d'études</h4>
+            <p>{school.dureeEtudes}</p>
           </div>
         </div>
 
-        <div className="info-card" style={{ 
-          padding: '16px', 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-        }}>
-          <HiOutlineAcademicCap className="info-icon-hi" style={{ fontSize: '24px', color: '#00cde1' }} />
-          <div className="info-content">
-            <h4 style={{ margin: '8px 0 4px', fontSize: '14px', color: '#666' }}>Diplôme délivré</h4>
-            <p style={{ margin: 0, fontWeight: 'bold', color: '#002147' }}>{school.diplome}</p>
+        <div className="info-card card-diploma">
+          <div className="info-icon-wrapper">
+            <HiOutlineAcademicCap />
           </div>
-        </div>
-
-        <div className="info-card" style={{ 
-          padding: '16px', 
-          background: 'white', 
-          borderRadius: '12px', 
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-        }}>
-          <HiOutlineStar className="info-icon-hi" style={{ fontSize: '24px', color: '#00cde1' }} />
           <div className="info-content">
-            <h4 style={{ margin: '8px 0 4px', fontSize: '14px', color: '#666' }}>Note moyenne</h4>
-            <p style={{ margin: 0, fontWeight: 'bold', color: '#002147' }}>{school.note}/5</p>
+            <h4>Diplôme</h4>
+            <p>{school.diplome}</p>
           </div>
         </div>
 
         {school.cout > 0 && (
-          <div className="info-card" style={{ 
-            padding: '16px', 
-            background: 'white', 
-            borderRadius: '12px', 
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)' 
-          }}>
-            <HiOutlineBriefcase className="info-icon-hi" style={{ fontSize: '24px', color: '#00cde1' }} />
+          <div className="info-card card-cost">
+            <div className="info-icon-wrapper">
+              <HiOutlineBriefcase />
+            </div>
             <div className="info-content">
-              <h4 style={{ margin: '8px 0 4px', fontSize: '14px', color: '#666' }}>Frais annuels</h4>
-              <p style={{ margin: 0, fontWeight: 'bold', color: '#002147' }}>{school.cout.toLocaleString()} MAD</p>
+              <h4>Frais/An</h4>
+              <p>{school.cout.toLocaleString()} MAD</p>
             </div>
           </div>
         )}

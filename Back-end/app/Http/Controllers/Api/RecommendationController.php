@@ -122,7 +122,7 @@ class RecommendationController extends Controller
         }
 
         $schoolPayload = $this->formatSchoolsForAI($filteredSchools, $request);
-        $prompt = $this->buildSimplifiedPrompt($request, $schoolPayload);
+        $prompt = $this->buildAIPrompt($request, $schoolPayload);
 
         try {
             $response = Http::timeout(30)
@@ -209,13 +209,20 @@ class RecommendationController extends Controller
         return $schools->filter(function (School $school) use ($ville, $schoolTypePreference, $maxBudget, $note) {
             $schoolCity = $this->normalizeText((string) $school->ville);
             $schoolType = $this->normalizeText((string) $school->type);
-            $cost = (float) ($school->cout ?? 0);
+            
+            // NEW COST LOGIC
+            $coutPublic = (float)($school->cout_public ?? 0);
+            $coutPrive = (float)($school->cout_prive ?? 0);
+            $concoursMin = (float)($school->admission_concours_note_min ?? 0);
+            
+            $realCost = ($note >= $concoursMin && $coutPublic > 0) ? $coutPublic : $coutPrive;
+            if ($realCost === 0 && $coutPublic > 0) $realCost = $coutPublic; // Fallback
 
             if ($ville && $schoolCity !== $ville) {
                 return false;
             }
 
-            if ($cost > 0 && $cost > $maxBudget) {
+            if ($realCost > 0 && $realCost > $maxBudget) {
                 return false;
             }
 
@@ -223,7 +230,7 @@ class RecommendationController extends Controller
                 return false;
             }
 
-            return !$schoolTypePreference || $schoolType === $schoolTypePreference;
+            return !$schoolTypePreference || $schoolType === $schoolTypePreference || $this->normalizeText((string)$school->categorie_ecole) === $schoolTypePreference;
         })
         ->map(function (School $school) use ($request, $ville, $interestDomain) {
             $school->recommendation_score = $this->calculateRecommendationScore($school, $request);
@@ -364,7 +371,7 @@ class RecommendationController extends Controller
         })->values()->toArray();
     }
 
-    private function buildSimplifiedPrompt(Request $request, array $schools): string
+    private function buildAIPrompt(Request $request, array $schools, string $provider = 'Groq'): string
     {
         $budgetRanges = [
             'under_10000' => '< 10,000 MAD',
@@ -387,26 +394,40 @@ class RecommendationController extends Controller
             'domaine_interet' => $request->input('interest_domain') ?: 'Indifferent',
         ];
 
-        $schoolsList = collect($schools)->map(fn ($school) => [
-            'id' => $school['id'],
-            'nom' => $school['nom'],
-            'ville' => $school['ville'],
-            'type' => $school['type'],
-            'note_moyenne' => $school['note'] ?? 0,
-            'cout_annuel' => $school['cout'] > 0 ? $school['cout'] . ' MAD' : 'Gratuit',
-            'note_min_bac' => $school['bac_min_note'] > 0 ? $school['bac_min_note'] : 'Non spécifié',
-            'compatibilite' => $school['compatibilite'] ?? [],
-            'formations_pertinentes' => $school['formations_pertinentes'] ?? [],
-            'formations_resume' => collect($school['formations'])->map(function ($formation) {
-                return implode(' | ', array_filter([
-                    $formation['nom'] ?? null,
-                    $formation['type'] ?? null,
-                    $formation['niveau_acces'] ?? null,
-                ]));
-            })->join('; '),
-            'score_local' => $school['recommendation_score'] ?? null,
-            'points_forts' => $school['recommendation_reasons'] ?? [],
-        ])->values()->toArray();
+        $note = (float) $request->input('note');
+        $schoolsList = collect($schools)->map(function ($school) use ($note) {
+            $coutPublic = (float)($school['cout_public'] ?? 0);
+            $coutPrive = (float)($school['cout_prive'] ?? 0);
+            $concoursMin = (float)($school['admission_concours_note_min'] ?? 0);
+            
+            // Calcul du coût réel basé sur la note du candidat
+            $realCost = ($note >= $concoursMin && $coutPublic > 0) ? $coutPublic : $coutPrive;
+            if ($realCost === 0 && $coutPublic > 0) $realCost = $coutPublic;
+
+            return [
+                'id' => $school['id'],
+                'nom' => $school['nom'],
+                'ville' => $school['ville'],
+                'type' => $school['type'],
+                'categorie' => $school['categorie_ecole'] ?? $school['type'] ?? null,
+                'domaine' => $school['domaine_principal'] ?? null,
+                'cout_estime' => $realCost > 0 ? number_format($realCost, 0, '.', '') . ' MAD' : 'Gratuit/Public',
+                'a_internat' => (bool)($school['a_internat'] ?? false),
+                'match_domaine' => $school['hard_match_flags']['match_domaine'] ?? false,
+                'match_bac' => $school['hard_match_flags']['match_bac'] ?? false,
+                'match_niveau' => $school['hard_match_flags']['match_niveau'] ?? false,
+                'formations' => collect($school['formations'])->map(function ($f) {
+                    return [
+                        'nom' => $f['nom'],
+                        'niveau' => $f['niveau_acces'],
+                        'debouches' => $f['debouches'] ?? [],
+                        'est_alternance' => (bool)($f['est_alternance'] ?? false),
+                    ];
+                })->toArray(),
+                'points_forts' => $school['recommendation_reasons'] ?? [],
+                'score_local' => $school['recommendation_score'] ?? null
+            ];
+        })->values()->toArray();
 
         $prompt = "ÉTUDIANT MAROCAIN:\n" .
         "- Note Bac: {$studentProfile['note_bac']}/20\n" .
@@ -419,20 +440,20 @@ class RecommendationController extends Controller
         json_encode($schoolsList, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n" .
 
         "INSTRUCTIONS:\n" .
-        "1. Analyse le profil étudiant et recommande les 3 écoles LES PLUS ADAPTÉES\n" .
-        "2. Priorité ABSOLUE: formations pertinentes pour le domaine d'intérêt et compatibilité avec le type de bac\n" .
-        "3. N'utilise PAS le nom général de l'école comme critère principal; base-toi surtout sur les formations, la compatibilité et le niveau visé\n" .
-        "4. Si une école n'a pas de formation clairement liée au domaine demandé, ne la choisis pas s'il existe de meilleures options dans la même ville\n" .
-        "5. Les écoles ci-dessous sont toutes dans la ville choisie; utilise le score local comme indice secondaire seulement\n" .
-        "6. Réponds UNIQUEMENT en JSON: {\"school_ids\": [id1, id2, id3]}\n" .
-        "7. Choisis d'abord les écoles avec match_domaine=true et match_bac=true quand elles existent\n" .
-        "8. Utilise uniquement des IDs provenant de la liste fournie ci-dessus\n\n" .
+        "1. Analyse le profil étudiant et recommande les 3 écoles LES PLUS ADAPTÉES.\n" .
+        "2. Priorité CRITIQUE: \n" .
+        "   - Le domaine d'intérêt doit correspondre au champ 'domaine' de l'école ou aux formations proposées.\n" .
+        "   - La compatibilité avec le type de bac (match_bac) est éliminatoire.\n" .
+        "3. Coût: Le champ 'cout_estime' est déjà calculé pour cet étudiant (Public vs Privé selon sa note). Respecte le budget s'il est spécifié.\n" .
+        "4. Analyse multicritère: Privilégie les écoles avec match_domaine=true. Si plusieurs écoles matchent, utilise la ville préférée comme critère de départage.\n" .
+        "5. N'invente pas d'informations. Utilise uniquement les données fournies.\n" .
+        "6. Réponds UNIQUEMENT en JSON: {\"school_ids\": [id1, id2, id3]}\n\n" .
 
-        "RÈGLES SPÉCIFIQUES MAROC:\n" .
-        "- Pour Bac Math/SVT: privilégier écoles d'ingénierie ou sciences\n" .
-        "- Pour Bac Economique: privilégier commerce/gestion\n" .
-        "- Pour Bac Littéraire: privilégier communication/arts\n" .
-        "- Éviter les écoles de droit pour profils scientifiques";
+        "RÈGLES MÉTIER MAROC:\n" .
+        "- Écoles d'Ingénieurs (ENSA, ENAM, etc.): Bac Math/SVT/PC uniquement.\n" .
+        "- Facultés/Universités: Plus flexibles mais vérifier le domaine.\n" .
+        "- Écoles de Commerce (ENCG, ISCAE, etc.): Priorité Bac Eco, mais ouvert aux autres si bon score.\n" .
+        "- Internat: Si l'étudiant change de ville, privilégie les écoles avec a_internat=true.";
 
         return $prompt;
     }
@@ -477,8 +498,8 @@ class RecommendationController extends Controller
             $score += $schoolCity === $ville ? 25 : 5;
         }
 
-        if ($schoolTypePreference && $schoolType === $schoolTypePreference) {
-            $score += 8;
+        if ($schoolTypePreference && ($schoolType === $schoolTypePreference || $this->normalizeText((string)$school->categorie_ecole) === $schoolTypePreference)) {
+            $score += 12; // Increased weight for specific type/category match
         }
 
         if ($school->bac_min_note > 0) {
@@ -491,22 +512,32 @@ class RecommendationController extends Controller
             $score += 10;
         }
 
-        $cost = (float) ($school->cout ?? 0);
-        if ($cost <= 0) {
-            $score += 8;
-        } elseif ($cost <= $maxBudget) {
-            $budgetGap = max(1, $maxBudget - $cost);
-            $score += 8 + min(10, ($budgetGap / max(1, $maxBudget)) * 10);
+        $coutPublic = (float)($school->cout_public ?? 0);
+        $coutPrive = (float)($school->cout_prive ?? 0);
+        $concoursMin = (float)($school->admission_concours_note_min ?? 0);
+        $realCost = ($note >= $concoursMin && $coutPublic > 0) ? $coutPublic : $coutPrive;
+        if ($realCost === 0 && $coutPublic > 0) $realCost = $coutPublic;
+
+        if ($realCost <= 0) {
+            $score += 10;
+        } elseif ($realCost <= $maxBudget) {
+            $budgetGap = max(1, $maxBudget - $realCost);
+            $score += 8 + min(12, ($budgetGap / max(1, $maxBudget)) * 12);
         } else {
-            $score -= 25;
+            $score -= 30;
         }
 
         if ($this->matchesAcademicTrack($bacType, $schoolText, $schoolType)) {
             $score += 18;
         }
 
-        if ($interestDomain && $this->matchesInterestDomain($interestDomain, $schoolText, $schoolType)) {
-            $score += 24;
+        $schoolDomaine = $this->normalizeText((string)$school->domaine_principal);
+        if ($interestDomain) {
+            if ($schoolDomaine && str_contains($schoolDomaine, $interestDomain)) {
+                $score += 30; // Very high weight for direct domain match
+            } elseif ($this->matchesInterestDomain($interestDomain, $schoolText, $schoolType)) {
+                $score += 20;
+            }
         }
 
         if ($studyLevel && $this->matchesStudyLevel($studyLevel, $schoolText)) {
@@ -643,7 +674,10 @@ class RecommendationController extends Controller
 
         return $this->normalizeText(implode(' ', array_filter([
             $school->nom,
+            $school->short_name,
             $school->type,
+            $school->categorie_ecole,
+            $school->domaine_principal,
             $school->description,
             $school->presentation,
             $school->diplome,

@@ -276,7 +276,7 @@ const Recommendations = () => {
           </div>
           <div className="rec-results-list">
             {results.map((school, index) => (
-              <div key={school.id} className="rec-result-item">
+              <div key={school.id} className="rec-result-item" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="rec-item-rank">#{index + 1}</div>
                 <img
                   src={getImageUrl(school.logo)}
@@ -285,16 +285,50 @@ const Recommendations = () => {
                   onError={(e) => { e.target.src = 'https://via.placeholder.com/60'; }}
                 />
                 <div className="rec-item-info">
-                  <h4>{school.nom}</h4>
+                  <div className="rec-item-title-row">
+                    <h4>
+                      {school.short_name && <span className="rec-short-name">{school.short_name}</span>}
+                      {school.nom}
+                    </h4>
+                  </div>
+                  <div className="rec-item-tags">
+                    {school.domaine_principal && <span className="rec-tag domaine">{school.domaine_principal}</span>}
+                    {school.type && <span className="rec-tag type">{school.type}</span>}
+                    {school.a_internat && <span className="rec-tag internat">Internat</span>}
+                  </div>
                   <div className="rec-item-meta">
                     <span><HiOutlineMapPin /> {school.ville}</span>
-                    <span><HiOutlineBanknotes /> {school.cout > 0 ? `${school.cout.toLocaleString()} MAD` : 'Public'}</span>
+                    <span>
+                      <HiOutlineBanknotes /> 
+                      {(() => {
+                        const coutPublic = parseFloat(school.cout_public || 0);
+                        const coutPrive = parseFloat(school.cout_prive || 0);
+                        const concoursMin = parseFloat(school.admission_concours_note_min || 0);
+                        const userNote = parseFloat(formData.note);
+                        
+                        const isPublic = userNote >= concoursMin && coutPublic > 0;
+                        const finalCost = isPublic ? coutPublic : coutPrive;
+                        
+                        if (finalCost === 0 && coutPublic > 0) return 'Gratuit (Public)';
+                        if (finalCost === 0) return 'Non spécifié';
+                        
+                        return (
+                          <>
+                            {finalCost.toLocaleString()} MAD 
+                            <small style={{ marginLeft: '4px', opacity: 0.8 }}>
+                              ({isPublic ? 'Public' : 'Privé'})
+                            </small>
+                          </>
+                        );
+                      })()}
+                    </span>
                   </div>
                   <div className="rec-item-rating">
                     {renderStars(school.note)}
+                    <span className="rating-number">{school.note}/5</span>
                   </div>
                 </div>
-                <button className="rec-item-btn" onClick={() => navigate(`/ecole/${school.id}`)}>
+                <button className="rec-item-btn" onClick={() => navigate(`/ecole/${school.id}`)} title="Voir détails">
                   <HiArrowRight />
                 </button>
               </div>

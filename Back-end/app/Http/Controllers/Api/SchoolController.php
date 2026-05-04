@@ -31,7 +31,7 @@ class SchoolController extends Controller
                 });
             }
 
-            $sortBy = $request->get('sortBy', 'note');
+            $sortBy = $request->input('sortBy', 'note');
             if ($sortBy === 'nom') {
                 $query->orderBy('nom', 'asc');
             } else {
@@ -39,7 +39,7 @@ class SchoolController extends Controller
                 $query->orderBy('note', 'desc');
             }
 
-            $perPage = $request->get('per_page', 9);
+            $perPage = $request->input('per_page', 9);
             $schools = $query->paginate($perPage);
             
             return response()->json([
@@ -81,8 +81,10 @@ class SchoolController extends Controller
     public function filters()
     {
         try {
-            $villes = School::select('ville')->distinct()->orderBy('ville')->pluck('ville');
-            $types = School::select('type')->distinct()->orderBy('type')->pluck('type');
+            $villes = School::select('ville')->whereNotNull('ville')->distinct()->orderBy('ville')->pluck('ville');
+            $types = School::select('type')->whereNotNull('type')->distinct()->orderBy('type')->pluck('type');
+            $categories = School::select('categorie_ecole')->whereNotNull('categorie_ecole')->distinct()->orderBy('categorie_ecole')->pluck('categorie_ecole');
+            $domaines = School::select('domaine_principal')->whereNotNull('domaine_principal')->distinct()->orderBy('domaine_principal')->pluck('domaine_principal');
             $specialites = Formation::select('nom')->distinct()->orderBy('nom')->pluck('nom');
             
             return response()->json([
@@ -90,6 +92,8 @@ class SchoolController extends Controller
                 'data' => [
                     'villes' => $villes,
                     'types' => $types,
+                    'categories' => $categories,
+                    'domaines' => $domaines,
                     'specialites' => $specialites,
                 ]
             ]);
@@ -110,6 +114,7 @@ class SchoolController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('nom', 'like', "%{$search}%")
+                      ->orWhere('short_name', 'like', "%{$search}%")
                       ->orWhere('ville', 'like', "%{$search}%")
                       ->orWhere('type', 'like', "%{$search}%");
                 });
@@ -121,6 +126,18 @@ class SchoolController extends Controller
 
             if ($request->filled('type')) {
                 $query->where('type', $request->type);
+            }
+
+            if ($request->filled('categorie')) {
+                $query->where('categorie_ecole', $request->categorie);
+            }
+
+            if ($request->filled('domaine')) {
+                $query->where('domaine_principal', $request->domaine);
+            }
+
+            if ($request->has('internat')) {
+                $query->where('a_internat', $request->internat);
             }
 
             if ($request->filled('specialite')) {

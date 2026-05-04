@@ -34,7 +34,11 @@ class School extends Model
         'a_internat',
         'images',
         'note',
-        'cout',
+        'cout_public',
+        'cout_prive',
+        'admission_concours_note_min',
+        'admission_prive_possible',
+        'admission_concours_possible',
         'bac_min_note',
         'prerequis_bac_type',
         'prerequis_bac_mention',
@@ -47,6 +51,8 @@ class School extends Model
         'prerequis_bac_type' => 'array',
         'debouches' => 'array',
         'a_internat' => 'boolean',
+        'admission_prive_possible' => 'boolean',
+        'admission_concours_possible' => 'boolean',
     ];
     /**
      * Relation : Une école a plusieurs formations.

@@ -25,6 +25,7 @@ const Filters = ({
   const [filterOptions, setFilterOptions] = useState({
     villes: [],
     types: [],
+    domaines: [],
     specialites: [],
   });
 
@@ -42,9 +43,10 @@ const Filters = ({
         
         if (externalFilterOptions && externalFilterOptions.villes?.length > 0) {
           setFilterOptions({
-            villes: externalFilterOptions.villes,
-            types: externalFilterOptions.types,
-            specialites: externalFilterOptions.specialites,
+            villes: externalFilterOptions.villes || [],
+            types: externalFilterOptions.types || [],
+            domaines: externalFilterOptions.domaines || [],
+            specialites: externalFilterOptions.specialites || [],
           });
         } else {
           const response = await getFilters();
@@ -55,8 +57,9 @@ const Filters = ({
           }
           setFilterOptions({
             villes: filterData.villes || [],
-            specialites: filterData.specialites || [],
             types: filterData.types || [],
+            domaines: filterData.domaines || [],
+            specialites: filterData.specialites || [],
           });
         }
 
@@ -186,6 +189,8 @@ const Filters = ({
     let count = 0;
     if (activeFilters.ville && activeFilters.ville !== "") count++;
     if (activeFilters.type && activeFilters.type !== "") count++;
+    if (activeFilters.domaine && activeFilters.domaine !== "") count++;
+    if (activeFilters.internat !== undefined && activeFilters.internat !== "") count++;
     if (activeFilters.specialite && activeFilters.specialite !== "") count++;
     if (
       activeFilters.minPrice && 
@@ -203,6 +208,8 @@ const Filters = ({
   const hasActiveFilters =
     (activeFilters.ville && activeFilters.ville !== "") ||
     (activeFilters.type && activeFilters.type !== "") ||
+    (activeFilters.domaine && activeFilters.domaine !== "") ||
+    (activeFilters.internat !== undefined && activeFilters.internat !== "") ||
     (activeFilters.specialite && activeFilters.specialite !== "") ||
     (activeFilters.minPrice && activeFilters.minPrice !== "" && activeFilters.minPrice !== priceRange.min) ||
     (activeFilters.maxPrice && activeFilters.maxPrice !== "" && activeFilters.maxPrice !== priceRange.max);
@@ -375,6 +382,81 @@ const Filters = ({
             </div>
           </div>
 
+
+          {/* Domaine Filter */}
+          <div className="filter-group">
+            <label className="filter-group-label">Domaine d'études</label>
+            <div className="filter-tag-container">
+              <div
+                className={`filter-select ${activeFilters.domaine ? "active" : ""}`}
+                onClick={() => toggleDropdown("domaine")}
+              >
+                {activeFilters.domaine || "Tous les domaines"}
+                <HiOutlineChevronDown className="select-arrow-icon" />
+              </div>
+
+              {activeDropdown === "domaine" && (
+                <div className="options-dropdown">
+                  <div className="dropdown-scroll">
+                    {filterOptions.domaines.map((dom, index) => (
+                      <div
+                        key={index}
+                        className={`dropdown-item ${activeFilters.domaine === dom ? "selected" : ""}`}
+                        onClick={() => selectFilter("domaine", dom)}
+                      >
+                        {dom}
+                        {activeFilters.domaine === dom && <HiOutlineCheck className="check-icon" />}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Internat Filter */}
+          <div className="filter-group">
+            <label className="filter-group-label">Internat</label>
+            <div className="filter-tag-container">
+              <div className="internat-toggle-options" style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className={`toggle-option-btn ${activeFilters.internat === 1 ? 'active' : ''}`}
+                  onClick={() => selectFilter("internat", activeFilters.internat === 1 ? "" : 1)}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    background: activeFilters.internat === 1 ? '#002147' : 'white',
+                    color: activeFilters.internat === 1 ? 'white' : '#666',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Avec Internat
+                </button>
+                <button 
+                  className={`toggle-option-btn ${activeFilters.internat === 0 ? 'active' : ''}`}
+                  onClick={() => selectFilter("internat", activeFilters.internat === 0 ? "" : 0)}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    borderRadius: '8px',
+                    border: '1px solid #ddd',
+                    background: activeFilters.internat === 0 ? '#002147' : 'white',
+                    color: activeFilters.internat === 0 ? 'white' : '#666',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Sans Internat
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Spécialité Filter */}
           <div className="filter-group">
             <label className="filter-group-label">Spécialité</label>
@@ -384,7 +466,7 @@ const Filters = ({
                 onClick={() => toggleDropdown("specialite")}
               >
                 {activeFilters.specialite || "Toutes les spécialités"}
-                <span className="select-arrow">▼</span>
+                <HiOutlineChevronDown className="select-arrow-icon" />
               </div>
 
               {activeDropdown === "specialite" && (
@@ -397,7 +479,7 @@ const Filters = ({
                         onClick={() => selectFilter("specialite", specialite)}
                       >
                         {specialite}
-                        {activeFilters.specialite === specialite && <span className="check">✓</span>}
+                        {activeFilters.specialite === specialite && <HiOutlineCheck className="check-icon" />}
                       </div>
                     ))}
                   </div>

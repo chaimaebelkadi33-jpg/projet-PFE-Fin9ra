@@ -27,6 +27,7 @@ import {
   HiOutlineExclamationTriangle,
   HiOutlineArrowLeft,
   HiOutlinePhoto,
+  HiOutlineQueueList,
 } from "react-icons/hi2";
 import "../../Styles/admin.css";
 
@@ -66,6 +67,18 @@ const AdminSchools = () => {
     telephone: "",
     adresse: "",
     note: "",
+    short_name: "",
+    domaine_principal: "",
+    categorie_ecole: "",
+    mots_cles_recherche: "",
+    prerequis_bac_type: "",
+    prerequis_bac_mention: "",
+    a_internat: false,
+    cout_public: "",
+    cout_prive: "",
+    admission_concours_note_min: "",
+    admission_prive_possible: false,
+    admission_concours_possible: true,
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -159,6 +172,18 @@ const AdminSchools = () => {
       telephone: "",
       adresse: "",
       note: "",
+      short_name: "",
+      domaine_principal: "",
+      categorie_ecole: "",
+      mots_cles_recherche: "",
+      prerequis_bac_type: "",
+      prerequis_bac_mention: "",
+      a_internat: false,
+      cout_public: "",
+      cout_prive: "",
+      admission_concours_note_min: "",
+      admission_prive_possible: false,
+      admission_concours_possible: true,
     });
     setEditingSchool(null);
     setLogoFile(null);
@@ -191,6 +216,22 @@ const AdminSchools = () => {
       telephone: school.telephone || "",
       adresse: school.adresse || "",
       note: school.note || "",
+      short_name: school.short_name || "",
+      domaine_principal: school.domaine_principal || "",
+      categorie_ecole: school.categorie_ecole || "",
+      mots_cles_recherche: Array.isArray(school.mots_cles_recherche)
+        ? school.mots_cles_recherche.join(", ")
+        : school.mots_cles_recherche || "",
+      prerequis_bac_type: Array.isArray(school.prerequis_bac_type)
+        ? school.prerequis_bac_type.join(", ")
+        : school.prerequis_bac_type || "",
+      prerequis_bac_mention: school.prerequis_bac_mention || "",
+      a_internat: !!school.a_internat,
+      cout_public: school.cout_public || "",
+      cout_prive: school.cout_prive || "",
+      admission_concours_note_min: school.admission_concours_note_min || "",
+      admission_prive_possible: !!school.admission_prive_possible,
+      admission_concours_possible: school.admission_concours_possible !== false,
     });
 
     // Setup Logo preview if it exists
@@ -285,7 +326,28 @@ const AdminSchools = () => {
 
     const formDataObj = new FormData();
     Object.keys(formData).forEach((key) => {
-      formDataObj.append(key, formData[key] === null ? "" : formData[key]);
+      let value = formData[key];
+
+      // Handle specific types
+      if (key === "mots_cles_recherche" || key === "prerequis_bac_type") {
+        const arrayValue = value
+          ? value
+              .split(",")
+              .map((item) => item.trim())
+              .filter((item) => item !== "")
+          : [];
+        value = JSON.stringify(arrayValue);
+      } else if (
+        key === "a_internat" ||
+        key === "admission_prive_possible" ||
+        key === "admission_concours_possible"
+      ) {
+        value = value ? "1" : "0";
+      } else if (value === null) {
+        value = "";
+      }
+
+      formDataObj.append(key, value);
     });
 
     // Explicitly parse note
@@ -454,6 +516,14 @@ const AdminSchools = () => {
                         <span className="rating-pill">{school.note || 0}</span>
                       </td>
                       <td className="actions-cell">
+                        <button
+                          className="btn-edit"
+                          onClick={() => navigate(`/admin/schools/${school.id}/formations`)}
+                          title="Gérer les formations"
+                          style={{ backgroundColor: "rgba(0, 255, 255, 0.1)", color: "#00ffff" }}
+                        >
+                          <HiOutlineQueueList />
+                        </button>
                         <button
                           className="btn-edit"
                           onClick={() => handleEdit(school)}
@@ -675,6 +745,117 @@ const AdminSchools = () => {
                         />
                       </div>
                     </div>
+                    <div className="form-group">
+                      <label>Acronyme (ex: ENSIAS)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineBuildingLibrary className="input-icon" />
+                        <input
+                          type="text"
+                          placeholder="Ex: EMI, ENCG..."
+                          value={formData.short_name}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              short_name: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h3 className="form-section-title">
+                    <HiOutlineTag /> Catégorisation
+                  </h3>
+                  <div className="form-fields-grid">
+                    <div className="form-group">
+                      <label>Domaine Principal</label>
+                      <div className="input-with-icon">
+                        <HiOutlineTag className="input-icon" />
+                        <select
+                          value={formData.domaine_principal}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              domaine_principal: e.target.value,
+                            })
+                          }
+                          style={{ paddingLeft: "50px" }}
+                        >
+                          <option value="">Sélectionner un domaine</option>
+                          <option value="Informatique">Informatique</option>
+                          <option value="Commerce">Commerce</option>
+                          <option value="Santé">Santé</option>
+                          <option value="Ingénierie">Ingénierie</option>
+                          <option value="Sciences">Sciences</option>
+                          <option value="Droit">Droit</option>
+                          <option value="Lettres">Lettres</option>
+                          <option value="Communication">Communication</option>
+                          <option value="Architecture">Architecture</option>
+                          <option value="Agriculture">Agriculture</option>
+                          <option value="Télécommunications">
+                            Télécommunications
+                          </option>
+                          <option value="Multidisciplinaire">
+                            Multidisciplinaire
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Catégorie d'école</label>
+                      <div className="input-with-icon">
+                        <HiOutlineBuildingLibrary className="input-icon" />
+                        <select
+                          value={formData.categorie_ecole}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              categorie_ecole: e.target.value,
+                            })
+                          }
+                          style={{ paddingLeft: "50px" }}
+                        >
+                          <option value="">Sélectionner une catégorie</option>
+                          <option value="grande_ecole_ingenieur">
+                            Grande École d'Ingénieur
+                          </option>
+                          <option value="ecole_ingenieur_publique">
+                            École d'Ingénieur Publique
+                          </option>
+                          <option value="ecole_ingenieur_privee">
+                            École d'Ingénieur Privée
+                          </option>
+                          <option value="faculte_sciences">
+                            Faculté des Sciences
+                          </option>
+                          <option value="faculte_droit_economie">
+                            Faculté de Droit & Économie
+                          </option>
+                          <option value="faculte_lettres">
+                            Faculté des Lettres
+                          </option>
+                          <option value="ecole_commerce_gestion">
+                            École de Commerce & Gestion
+                          </option>
+                          <option value="ecole_architecture">
+                            École d'Architecture
+                          </option>
+                          <option value="ecole_sciences_appliquees">
+                            École des Sciences Appliquées
+                          </option>
+                          <option value="centre_formation">
+                            Centre de Formation
+                          </option>
+                          <option value="universite_publique">
+                            Université Publique
+                          </option>
+                          <option value="autre">Autre</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -827,6 +1008,182 @@ const AdminSchools = () => {
                           onChange={(e) =>
                             setFormData({ ...formData, note: e.target.value })
                           }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h3 className="form-section-title">
+                    <HiOutlineIdentification /> Admission & Coûts
+                  </h3>
+                  <div className="form-fields-grid">
+                    <div className="form-group">
+                      <label>Frais Concours / Public (MAD/an)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineTag className="input-icon" />
+                        <input
+                          type="number"
+                          placeholder="Ex: 500"
+                          value={formData.cout_public}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              cout_public: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Frais Voie Privée (MAD/an)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineTag className="input-icon" />
+                        <input
+                          type="number"
+                          placeholder="Ex: 45000"
+                          value={formData.cout_prive}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              cout_prive: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Note Min Bac (Concours)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineStar className="input-icon" />
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="Ex: 14.5"
+                          value={formData.admission_concours_note_min}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              admission_concours_note_min: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Mention Bac Requise</label>
+                      <div className="input-with-icon">
+                        <HiOutlineIdentification className="input-icon" />
+                        <select
+                          value={formData.prerequis_bac_mention}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              prerequis_bac_mention: e.target.value,
+                            })
+                          }
+                          style={{ paddingLeft: "50px" }}
+                        >
+                          <option value="">Aucune</option>
+                          <option value="Passable">Passable</option>
+                          <option value="Assez bien">Assez bien</option>
+                          <option value="Bien">Bien</option>
+                          <option value="Très bien">Très bien</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div
+                      className="form-group"
+                      style={{ gridColumn: "span 3", display: "flex", gap: "20px" }}
+                    >
+                      <label className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={formData.a_internat}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              a_internat: e.target.checked,
+                            })
+                          }
+                        />
+                        <span>Dispose d'un internat</span>
+                      </label>
+                      <label className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={formData.admission_prive_possible}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              admission_prive_possible: e.target.checked,
+                            })
+                          }
+                        />
+                        <span>Admission privée possible</span>
+                      </label>
+                      <label className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={formData.admission_concours_possible}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              admission_concours_possible: e.target.checked,
+                            })
+                          }
+                        />
+                        <span>Admission concours possible</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h3 className="form-section-title">
+                    <HiOutlineTag /> Mots-clés & Bac
+                  </h3>
+                  <div className="form-fields-grid">
+                    <div className="form-group" style={{ gridColumn: "span 3" }}>
+                      <label>Mots-clés (séparés par des virgules)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineTag
+                          className="input-icon"
+                          style={{ top: "20px" }}
+                        />
+                        <textarea
+                          placeholder="Ex: ingénierie, data science, web..."
+                          value={formData.mots_cles_recherche}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              mots_cles_recherche: e.target.value,
+                            })
+                          }
+                          rows="2"
+                          style={{ paddingLeft: "50px", paddingTop: "15px" }}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group" style={{ gridColumn: "span 3" }}>
+                      <label>Types de Bac requis (séparés par des virgules)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineAcademicCap
+                          className="input-icon"
+                          style={{ top: "20px" }}
+                        />
+                        <textarea
+                          placeholder="Ex: SM, PC, SVT..."
+                          value={formData.prerequis_bac_type}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              prerequis_bac_type: e.target.value,
+                            })
+                          }
+                          rows="2"
+                          style={{ paddingLeft: "50px", paddingTop: "15px" }}
                         />
                       </div>
                     </div>

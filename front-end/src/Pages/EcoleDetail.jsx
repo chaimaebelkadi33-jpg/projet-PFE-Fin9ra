@@ -1,17 +1,23 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "../Components/Toast";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getSchoolById, getSchoolReviews, addReview, getImageUrl, toggleFavorite } from "../Services/api";
-import { 
-  HiOutlineArrowLeft, 
-  HiOutlineChevronLeft, 
-  HiOutlineChevronRight, 
-  HiOutlineStar, 
+import {
+  getSchoolById,
+  getSchoolReviews,
+  addReview,
+  getImageUrl,
+  toggleFavorite,
+} from "../Services/api";
+import {
+  HiOutlineArrowLeft,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
+  HiOutlineStar,
   HiStar,
-  HiOutlineAcademicCap, 
+  HiOutlineAcademicCap,
   HiOutlineMap,
   HiOutlineHeart,
-  HiHeart
+  HiHeart,
 } from "react-icons/hi2";
 import { useAuth } from "../Context/AuthContext";
 import "../Styles/ecoleDetail.css";
@@ -46,7 +52,7 @@ function EcoleDetails() {
 
     // Optimistic update
     if (wasFavorited) {
-      setFavorites(favorites.filter(favId => favId !== schoolId));
+      setFavorites(favorites.filter((favId) => favId !== schoolId));
     } else {
       setFavorites([...favorites, schoolId]);
     }
@@ -61,12 +67,20 @@ function EcoleDetails() {
         }
       } else {
         // Revert if success is false
-        setFavorites(wasFavorited ? [...favorites, schoolId] : favorites.filter(favId => favId !== schoolId));
+        setFavorites(
+          wasFavorited
+            ? [...favorites, schoolId]
+            : favorites.filter((favId) => favId !== schoolId),
+        );
         toast.error("Erreur lors de la mise à jour");
       }
     } catch (error) {
       // Revert on error
-      setFavorites(wasFavorited ? [...favorites, schoolId] : favorites.filter(favId => favId !== schoolId));
+      setFavorites(
+        wasFavorited
+          ? [...favorites, schoolId]
+          : favorites.filter((favId) => favId !== schoolId),
+      );
       toast.error("Erreur lors de la mise à jour des favoris");
     }
   };
@@ -166,7 +180,7 @@ function EcoleDetails() {
 
     const existingImages = [school.logo, ...(school.images || [])]
       .filter((img) => img && img.trim() !== "")
-      .map(img => getImageUrl(img));
+      .map((img) => getImageUrl(img));
 
     if (existingImages.length > 0) {
       return existingImages;
@@ -233,7 +247,10 @@ function EcoleDetails() {
 
       if (i <= fullStars) {
         stars.push(
-          <HiStar {...commonProps} className={`${commonProps.className} full-hi`} />
+          <HiStar
+            {...commonProps}
+            className={`${commonProps.className} full-hi`}
+          />,
         );
       } else if (i === fullStars + 1 && hasHalfStar && !isInteractive) {
         // Half stars only show in display mode
@@ -241,14 +258,14 @@ function EcoleDetails() {
           <span key={i} className="star half-hi">
             <HiStar className="star-full-part" />
             <HiOutlineStar className="star-outline-part" />
-          </span>
+          </span>,
         );
       } else {
         stars.push(
           <HiOutlineStar
             {...commonProps}
             className={`${commonProps.className} empty-hi`}
-          />
+          />,
         );
       }
     }
@@ -291,7 +308,9 @@ function EcoleDetails() {
         }));
       }
 
-      toast.success("Merci pour votre avis ! Il sera publié après validation par notre équipe de modération.");
+      toast.success(
+        "Merci pour votre avis ! Il sera publié après validation par notre équipe de modération.",
+      );
     } catch (error) {
       if (error.response?.status === 422) {
         toast.warning("Vous avez déjà laissé un avis pour cette école");
@@ -367,9 +386,29 @@ function EcoleDetails() {
           </button>
         </div>
         <div className="school-header">
-          <h1 className="school-title">{school.nom}</h1>
-          <button 
-            className={`school-favorite-btn ${isFavorited ? 'active' : ''}`}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "baseline",
+              gap: "10px",
+            }}
+          >
+            {school.short_name && (
+              <span
+                style={{
+                  color: "#00ced1",
+                  fontSize: "1.7rem",
+                  fontWeight: "600",
+                }}
+              >
+                {school.short_name}
+              </span>
+            )}
+            <h1 className="school-title">: {school.nom}</h1>
+          </div>
+          <button
+            className={`school-favorite-btn ${isFavorited ? "active" : ""}`}
             onClick={handleToggleFavorite}
             title={isFavorited ? "Retirer des favoris" : "Ajouter aux favoris"}
           >
@@ -456,7 +495,8 @@ function EcoleDetails() {
           className={`tab-button ${activeTab === "formations" ? "active" : ""}`}
           onClick={() => setActiveTab("formations")}
         >
-          <HiOutlineAcademicCap className="tab-icon-hi" /> Formations & Spécialités ({school.formations?.length || 0})
+          <HiOutlineAcademicCap className="tab-icon-hi" /> Formations &
+          Spécialités ({school.formations?.length || 0})
         </button>
 
         {shouldShowAdmissionTab && (

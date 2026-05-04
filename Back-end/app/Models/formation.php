@@ -20,9 +20,23 @@ class Formation extends Model
         'description',
         'duree_mois',
         'niveau_acces',
+        'objectifs',
+        'competences',
+        'debouches',
+        'conditions_acces',
+        'code',
+        'responsable_nom',
+        'responsable_email',
+        'est_alternance',
+        'est_international',
     ];
 protected $casts = [
     'specialites' => 'array',  
+    'objectifs' => 'array',
+    'competences' => 'array',
+    'debouches' => 'array',
+    'est_alternance' => 'boolean',
+    'est_international' => 'boolean',
 ];
     /**
      * Relation : Une formation appartient à une école.

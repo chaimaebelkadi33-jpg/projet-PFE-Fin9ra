@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { 
-  HiOutlineAcademicCap, 
-  HiOutlineChartBar, 
-  HiOutlineDocumentText, 
-  HiOutlineBeaker, 
-  HiOutlineBookOpen, 
-  HiOutlineMapPin, 
-  HiOutlineChevronDown, 
-  HiOutlineChevronRight 
+import {
+  HiOutlineAcademicCap,
+  HiOutlineChartBar,
+  HiOutlineDocumentText,
+  HiOutlineBeaker,
+  HiOutlineBookOpen,
+  HiOutlineMapPin,
+  HiOutlineChevronDown,
+  HiOutlineChevronRight,
 } from "react-icons/hi2";
 
 function FormationsTab({ school }) {
@@ -33,24 +33,34 @@ function FormationsTab({ school }) {
     specialitesList: parseSpecialites(formation.specialites),
   }));
 
-  const filieres = formationsEnriched.filter(f => 
-    f.type === "Filière" || f.type === "Filière Gestion" || f.type === "Filière Commerce"
+  const filieres = formationsEnriched.filter(
+    (f) =>
+      f.type === "Filière" ||
+      f.type === "Filière Gestion" ||
+      f.type === "Filière Commerce",
   );
-  
-  const masters = formationsEnriched.filter(f => 
-    f.type === "Master Spécialisé" || f.type === "Master Universitaire"
+
+  const masters = formationsEnriched.filter(
+    (f) => f.type === "Master Spécialisé" || f.type === "Master Universitaire",
   );
-  
-  const licences = formationsEnriched.filter(f => 
-    f.type === "Licence Professionnelle"
+
+  const licences = formationsEnriched.filter(
+    (f) => f.type === "Licence Professionnelle",
   );
-  
-  const specialites = formationsEnriched.filter(f => 
-    f.type === "Spécialité"
-  );
-  
-  const autres = formationsEnriched.filter(f => 
-    !["Filière", "Filière Gestion", "Filière Commerce", "Master Spécialisé", "Master Universitaire", "Licence Professionnelle", "Spécialité"].includes(f.type)
+
+  const specialites = formationsEnriched.filter((f) => f.type === "Spécialité");
+
+  const autres = formationsEnriched.filter(
+    (f) =>
+      ![
+        "Filière",
+        "Filière Gestion",
+        "Filière Commerce",
+        "Master Spécialisé",
+        "Master Universitaire",
+        "Licence Professionnelle",
+        "Spécialité",
+      ].includes(f.type),
   );
 
   const toggleFormation = (index) => {
@@ -59,17 +69,19 @@ function FormationsTab({ school }) {
 
   const renderFormationList = (items, title, icon) => {
     if (items.length === 0) return null;
-    
+
     return (
       <div className="formation-category" style={{ marginBottom: "24px" }}>
-        <h3 style={{ 
-          color: "#002147", 
-          marginBottom: "16px", 
-          fontSize: "1.2rem",
-          borderBottom: "2px solid #00cde1",
-          display: "inline-block",
-          paddingBottom: "5px"
-        }}>
+        <h3
+          style={{
+            color: "#002147",
+            marginBottom: "16px",
+            fontSize: "1.2rem",
+            borderBottom: "2px solid #00cde1",
+            display: "inline-block",
+            paddingBottom: "5px",
+          }}
+        >
           {icon} {title} ({items.length})
         </h3>
         <div className="formations-list">
@@ -84,7 +96,8 @@ function FormationsTab({ school }) {
                 <div
                   className="formation-header"
                   onClick={() =>
-                    formation.specialitesList.length > 0 && toggleFormation(uniqueId)
+                    formation.specialitesList.length > 0 &&
+                    toggleFormation(uniqueId)
                   }
                   style={{
                     cursor:
@@ -121,7 +134,11 @@ function FormationsTab({ school }) {
                         fontWeight: "bold",
                       }}
                     >
-                    {expandedFormation === uniqueId ? <HiOutlineChevronDown className="toggle-icon-hi" /> : <HiOutlineChevronRight className="toggle-icon-hi" />}
+                      {expandedFormation === uniqueId ? (
+                        <HiOutlineChevronDown className="toggle-icon-hi" />
+                      ) : (
+                        <HiOutlineChevronRight className="toggle-icon-hi" />
+                      )}
                     </span>
                   ) : (
                     <span
@@ -144,31 +161,72 @@ function FormationsTab({ school }) {
                   >
                     {formation.nom}
                   </span>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      padding: "4px 10px",
-                      borderRadius: "20px",
-                      backgroundColor: "#e0e0e0",
-                      color: "#555",
-                    }}
-                  >
-                    {formation.type || "Formation"}
-                  </span>
-                  {formation.specialitesList.length > 0 && (
+                  
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {formation.niveau_acces && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          padding: "4px 10px",
+                          borderRadius: "20px",
+                          backgroundColor: "#f0fbff",
+                          color: "#00ced1",
+                          border: "1px solid #00ced144",
+                          fontWeight: "600"
+                        }}
+                        title="Niveau d'accès"
+                      >
+                        {formation.niveau_acces}
+                      </span>
+                    )}
+                    
+                    {formation.duree_mois && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          padding: "4px 10px",
+                          borderRadius: "20px",
+                          backgroundColor: "#f5f9ff",
+                          color: "#4a90e2",
+                          border: "1px solid #4a90e244",
+                          fontWeight: "600"
+                        }}
+                        title="Durée de la formation"
+                      >
+                        {formation.duree_mois} mois
+                      </span>
+                    )}
+
                     <span
                       style={{
-                        fontSize: "12px",
-                        color: "#fff",
-                        backgroundColor: "#00cde1",
-                        padding: "3px 10px",
+                        fontSize: "11px",
+                        padding: "4px 10px",
                         borderRadius: "20px",
-                        fontWeight: "500",
+                        backgroundColor: "#f8fafc",
+                        color: "#64748b",
+                        border: "1px solid #e2e8f0",
+                        fontWeight: "600"
                       }}
                     >
-                      {formation.specialitesList.length} spécialité(s)
+                      {formation.type || "Formation"}
                     </span>
-                  )}
+
+                    {formation.specialitesList.length > 0 && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          color: "#fff",
+                          backgroundColor: "#00ced1",
+                          padding: "4px 12px",
+                          borderRadius: "20px",
+                          fontWeight: "600",
+                          boxShadow: "0 2px 4px rgba(0,206,209,0.2)"
+                        }}
+                      >
+                        {formation.specialitesList.length} Spéc.
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {expandedFormation === uniqueId &&
@@ -229,22 +287,45 @@ function FormationsTab({ school }) {
   return (
     <div className="formations-tab">
       <div className="formations-tree">
-        <h3 style={{ 
-          color: "#002147", 
-          marginBottom: "24px", 
-          fontSize: "1.3rem",
-          borderBottom: "2px solid #00cde1",
-          display: "inline-block",
-          paddingBottom: "5px"
-        }}>
-          <HiOutlineAcademicCap className="category-icon-hi" /> Formations & Spécialités
+        <h3
+          style={{
+            color: "#002147",
+            marginBottom: "24px",
+            fontSize: "1.3rem",
+            borderBottom: "2px solid #00cde1",
+            display: "inline-block",
+            paddingBottom: "5px",
+          }}
+        >
+          <HiOutlineAcademicCap className="category-icon-hi" /> Formations &
+          Spécialités
         </h3>
 
-        {renderFormationList(filieres, "Filières", <HiOutlineChartBar className="category-icon-hi" />)}
-        {renderFormationList(masters, "Masters", <HiOutlineAcademicCap className="category-icon-hi" />)}
-        {renderFormationList(licences, "Licences Professionnelles", <HiOutlineDocumentText className="category-icon-hi" />)}
-        {renderFormationList(specialites, "Spécialités", <HiOutlineBeaker className="category-icon-hi" />)}
-        {renderFormationList(autres, "Autres Formations", <HiOutlineBookOpen className="category-icon-hi" />)}
+        {renderFormationList(
+          filieres,
+          "Filières",
+          <HiOutlineChartBar className="category-icon-hi" />,
+        )}
+        {renderFormationList(
+          masters,
+          "Masters",
+          <HiOutlineAcademicCap className="category-icon-hi" />,
+        )}
+        {renderFormationList(
+          licences,
+          "Licences Professionnelles",
+          <HiOutlineDocumentText className="category-icon-hi" />,
+        )}
+        {renderFormationList(
+          specialites,
+          "Spécialités",
+          <HiOutlineBeaker className="category-icon-hi" />,
+        )}
+        {renderFormationList(
+          autres,
+          "Autres Formations",
+          <HiOutlineBookOpen className="category-icon-hi" />,
+        )}
       </div>
     </div>
   );

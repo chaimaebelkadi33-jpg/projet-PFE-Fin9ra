@@ -26,6 +26,7 @@ import AdminStats from "./Pages/Admin/AdminStats";
 import AdminProfile from "./Pages/Admin/AdminProfile";
 import AdminNotifications from "./Pages/Admin/AdminNotifications";
 import AdminSettings from "./Pages/Admin/AdminSettings";
+import AdminFormations from "./Pages/Admin/AdminFormations";
 
 import { AdminProvider } from "./Context/AdminContext";
 import { AuthProvider, useAuth } from "./Context/AuthContext";
@@ -96,6 +97,7 @@ function AppContent() {
             {/* Routes Admin */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/schools" element={<AdminSchools />} />
+            <Route path="/admin/schools/:schoolId/formations" element={<AdminFormations />} />
             <Route path="/admin/reviews" element={<AdminReviews />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/stats" element={<AdminStats />} />

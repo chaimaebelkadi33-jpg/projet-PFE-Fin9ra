@@ -145,34 +145,42 @@ const SearchBar = ({ onSearch, onFilter }) => {
 
       const matchedSuggestions = allSchools
         .filter((school) => {
-          if (!school.nom && !school.ville && !school.type) return false;
+          if (!school.nom && !school.ville && !school.type && !school.short_name) return false;
 
           const schoolName = removeAccents((school.nom || "").toLowerCase());
+          const schoolShortName = removeAccents((school.short_name || "").toLowerCase());
           const schoolCity = removeAccents((school.ville || "").toLowerCase());
           const schoolType = removeAccents((school.type || "").toLowerCase());
 
           return (
             schoolName.includes(queryLower) ||
+            schoolShortName.includes(queryLower) ||
             schoolCity.includes(queryLower) ||
             schoolType.includes(queryLower)
           );
         })
         .slice(0, 5)
-        .map((school) => ({
-          id: school.id,
-          name: school.nom,
-          type: school.type,
-          city: school.ville,
-          matchType: removeAccents((school.nom || "").toLowerCase()).includes(
-            queryLower
-          )
-            ? "name"
-            : removeAccents((school.ville || "").toLowerCase()).includes(
-                queryLower
-              )
-            ? "city"
-            : "type",
-        }));
+        .map((school) => {
+          const isNameMatch = removeAccents((school.nom || "").toLowerCase()).includes(queryLower);
+          const isShortNameMatch = removeAccents((school.short_name || "").toLowerCase()).includes(queryLower);
+          const isCityMatch = removeAccents((school.ville || "").toLowerCase()).includes(queryLower);
+          
+          return {
+            id: school.id,
+            name: isShortNameMatch && !isNameMatch 
+              ? `${school.short_name} - ${school.nom}` 
+              : school.nom,
+            shortName: school.short_name,
+            type: school.type,
+            city: school.ville,
+            realName: school.nom, // Store the actual name for searching
+            matchType: isNameMatch || isShortNameMatch
+              ? "name"
+              : isCityMatch
+              ? "city"
+              : "type",
+          };
+        });
 
       setSuggestions(matchedSuggestions);
     },
@@ -220,9 +228,11 @@ const SearchBar = ({ onSearch, onFilter }) => {
   };
 
   const handleSuggestionClick = (suggestion) => {
-    setQuery(suggestion.name);
+    // Use the actual school name for the search to ensure backend matches correctly
+    const searchName = suggestion.realName || suggestion.name;
+    setQuery(searchName);
     setShowSuggestions(false);
-    debouncedSearch(suggestion.name, activeFilters);
+    debouncedSearch(searchName, activeFilters);
   };
 
   const toggleDropdown = (filterType) => {

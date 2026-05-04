@@ -46,9 +46,35 @@ class SchoolAdminController extends Controller
             'adresse' => 'nullable|string',
             'logo' => 'nullable',
             'note' => 'nullable|numeric|min:0|max:5',
+            'short_name' => 'nullable|string|max:50',
+            'domaine_principal' => 'nullable|string',
+            'categorie_ecole' => 'nullable|string',
+            'mots_cles_recherche' => 'nullable',
+            'prerequis_bac_type' => 'nullable',
+            'prerequis_bac_mention' => 'nullable|string',
+            'a_internat' => 'nullable|boolean',
+            'cout_public' => 'nullable|numeric',
+            'cout_prive' => 'nullable|numeric',
+            'admission_concours_note_min' => 'nullable|numeric',
+            'admission_prive_possible' => 'nullable|boolean',
+            'admission_concours_possible' => 'nullable|boolean',
         ]);
 
-        $data = $request->except('logo');
+        $data = $request->all();
+        unset($data['logo']);
+
+        // Handle JSON arrays if they come as strings from FormData
+        if (isset($data['mots_cles_recherche']) && is_string($data['mots_cles_recherche'])) {
+            $data['mots_cles_recherche'] = json_decode($data['mots_cles_recherche'], true);
+        }
+        if (isset($data['prerequis_bac_type']) && is_string($data['prerequis_bac_type'])) {
+            $data['prerequis_bac_type'] = json_decode($data['prerequis_bac_type'], true);
+        }
+
+        // Convert boolean strings to actual booleans
+        $data['a_internat'] = $request->boolean('a_internat');
+        $data['admission_prive_possible'] = $request->boolean('admission_prive_possible');
+        $data['admission_concours_possible'] = $request->has('admission_concours_possible') ? $request->boolean('admission_concours_possible') : true;
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('schools/logos', 'public');
@@ -85,9 +111,41 @@ class SchoolAdminController extends Controller
             'adresse' => 'nullable|string',
             'logo' => 'nullable',
             'note' => 'nullable|numeric|min:0|max:5',
+            'short_name' => 'nullable|string|max:50',
+            'domaine_principal' => 'nullable|string',
+            'categorie_ecole' => 'nullable|string',
+            'mots_cles_recherche' => 'nullable',
+            'prerequis_bac_type' => 'nullable',
+            'prerequis_bac_mention' => 'nullable|string',
+            'a_internat' => 'nullable|boolean',
+            'cout_public' => 'nullable|numeric',
+            'cout_prive' => 'nullable|numeric',
+            'admission_concours_note_min' => 'nullable|numeric',
+            'admission_prive_possible' => 'nullable|boolean',
+            'admission_concours_possible' => 'nullable|boolean',
         ]);
 
-        $data = $request->except('logo');
+        $data = $request->all();
+        unset($data['logo']);
+
+        // Handle JSON arrays if they come as strings from FormData
+        if (isset($data['mots_cles_recherche']) && is_string($data['mots_cles_recherche'])) {
+            $data['mots_cles_recherche'] = json_decode($data['mots_cles_recherche'], true);
+        }
+        if (isset($data['prerequis_bac_type']) && is_string($data['prerequis_bac_type'])) {
+            $data['prerequis_bac_type'] = json_decode($data['prerequis_bac_type'], true);
+        }
+
+        // Convert boolean strings if they exist in request
+        if ($request->has('a_internat')) {
+            $data['a_internat'] = $request->boolean('a_internat');
+        }
+        if ($request->has('admission_prive_possible')) {
+            $data['admission_prive_possible'] = $request->boolean('admission_prive_possible');
+        }
+        if ($request->has('admission_concours_possible')) {
+            $data['admission_concours_possible'] = $request->boolean('admission_concours_possible');
+        }
 
         if ($request->hasFile('logo')) {
             if ($school->logo && strpos($school->logo, '/storage/') === 0) {

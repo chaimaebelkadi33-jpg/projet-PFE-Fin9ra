@@ -1403,3 +1403,89 @@
   background: #ef4444;
   color: white;
 }
+
+/* =========================================
+   PREMIUM FORM ENHANCEMENTS
+========================================== */
+.premium-form {
+  margin-top: 20px;
+}
+
+.input-with-icon textarea,
+.input-with-icon select {
+  width: 100%;
+  padding: 16px 20px 16px 50px !important;
+  background: rgba(0, 33, 71, 0.6) !important;
+  border: 1px solid rgba(0, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+  font-family: inherit;
+}
+
+.input-with-icon textarea:focus,
+.input-with-icon select:focus {
+  border-color: #00ffff !important;
+  background: rgba(0, 33, 71, 0.8) !important;
+  box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.1) !important;
+  outline: none;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.checkbox-container:hover {
+  background: rgba(0, 255, 255, 0.05);
+  color: #ffffff;
+  border-color: rgba(0, 255, 255, 0.2);
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #00ffff;
+  cursor: pointer;
+}
+
+.form-fields-grid select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300ffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+}
+
+.btn-danger-large {
+  background: #ef4444;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-danger-large:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger-large:active {
+  transform: translateY(0);
+}

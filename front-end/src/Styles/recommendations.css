@@ -291,17 +291,65 @@
 }
 
 .rec-item-info h4 {
-  margin: 0 0 5px 0;
+  margin: 0;
   color: #001a36;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rec-short-name {
+  background: #00ced1;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.rec-item-tags {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.rec-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.rec-tag.domaine {
+  background: #f0fdfa;
+  color: #007c7f;
+  border: 1px solid #ccfbf1;
+}
+
+.rec-tag.type {
+  background: #f5f9ff;
+  color: #4a90e2;
+  border: 1px solid #e0ebff;
+}
+
+.rec-tag.internat {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
 }
 
 .rec-item-meta {
   display: flex;
   gap: 15px;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 5px;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 8px;
 }
 
 .rec-item-meta span {
@@ -312,9 +360,15 @@
 
 .rec-item-rating {
   display: flex;
-  gap: 2px;
-  color: #fbbf24;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8rem;
+}
+
+.rating-number {
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.75rem;
 }
 
 .rec-item-btn {

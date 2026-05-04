@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getSchools, getFilters } from "../Services/api";
 import Filters from "../Components/Filters";
 import SchoolCard from "../Components/SchoolCard";
@@ -101,6 +102,7 @@ function Ecoles() {
   const [filterOptions, setFilterOptions] = useState({
     villes: [],
     types: [],
+    domaines: [],
     specialites: []
   });
   const [totalPages, setTotalPages] = useState(1);
@@ -108,30 +110,53 @@ function Ecoles() {
   const [viewMode, setViewMode] = useState("grid");
   const toast = useToast();
 
-  // LOCAL filters - for UI changes only (tous inactifs par défaut)
-  const [localFilters, setLocalFilters] = useState({
-    ville: "",
-    type: "",
-    specialite: "",
-    minPrice: null,
-    maxPrice: null,
+  // APPLIED filters - actual filters that affect results
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const [appliedFilters, setAppliedFilters] = useState({
+    ville: searchParams.get("ville") || "",
+    type: searchParams.get("type") || "",
+    domaine: searchParams.get("domaine") || "",
+    internat: searchParams.get("internat") || "",
+    specialite: searchParams.get("specialite") || "",
+    minPrice: searchParams.get("minPrice") || null,
+    maxPrice: searchParams.get("maxPrice") || null,
   });
 
-  // APPLIED filters - actual filters that affect results
-  const [appliedFilters, setAppliedFilters] = useState({
-    ville: "",
-    type: "",
-    specialite: "",
-    minPrice: null,
-    maxPrice: null,
-  });
+  // LOCAL filters - for UI changes only
+  const [localFilters, setLocalFilters] = useState({...appliedFilters});
 
   const [sortBy, setSortBy] = useState("note");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 20000 });
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  const pageFromURL = parseInt(searchParams.get("page")) || 1;
+  const [currentPage, setCurrentPage] = useState(pageFromURL);
   const itemsPerPage = 9;
+
+  // Sync state with URL when searchParams change (e.g. on back navigation)
+  useEffect(() => {
+    const page = parseInt(searchParams.get("page")) || 1;
+    if (page !== currentPage) {
+      setCurrentPage(page);
+    }
+    
+    const newFilters = {
+      ville: searchParams.get("ville") || "",
+      type: searchParams.get("type") || "",
+      domaine: searchParams.get("domaine") || "",
+      internat: searchParams.get("internat") || "",
+      specialite: searchParams.get("specialite") || "",
+      minPrice: searchParams.get("minPrice") || null,
+      maxPrice: searchParams.get("maxPrice") || null,
+    };
+    
+    // Check if filters changed to avoid infinite loop
+    const filtersChanged = Object.keys(newFilters).some(key => newFilters[key] !== appliedFilters[key]);
+    if (filtersChanged) {
+      setAppliedFilters(newFilters);
+      setLocalFilters(newFilters);
+    }
+  }, [searchParams]);
 
   // Load filter options on mount
   useEffect(() => {
@@ -154,6 +179,7 @@ function Ecoles() {
       setFilterOptions({
         villes: filterData.villes || [],
         types: filterData.types || [],
+        domaines: filterData.domaines || [],
         specialites: filterData.specialites || []
       });
     } catch (error) {
@@ -169,6 +195,8 @@ function Ecoles() {
         page,
         ville: filters.ville,
         type: filters.type,
+        domaine: filters.domaine,
+        internat: filters.internat,
         specialite: filters.specialite,
         sortBy: sort
       };
@@ -243,12 +271,24 @@ function Ecoles() {
   const handleApplyFilters = useCallback(() => {
     setAppliedFilters(localFilters);
     setCurrentPage(1); // Reset to first page on new filter
-  }, [localFilters]);
+    
+    setSearchParams((prev) => {
+      // Set all filter params
+      Object.entries(localFilters).forEach(([key, value]) => {
+        if (value) prev.set(key, value);
+        else prev.delete(key);
+      });
+      prev.delete("page"); // Reset page in URL too
+      return prev;
+    });
+  }, [localFilters, setSearchParams]);
 
   const resetFilters = useCallback(() => {
     const resetFiltersState = {
       ville: "",
       type: "",
+      domaine: "",
+      internat: "",
       specialite: "",
       minPrice: null,
       maxPrice: null,
@@ -256,8 +296,9 @@ function Ecoles() {
     setLocalFilters(resetFiltersState);
     setAppliedFilters(resetFiltersState);
     setCurrentPage(1);
+    setSearchParams({}); // Clear all URL params
     // loadSchools will be triggered by useEffect since appliedFilters/currentPage changed
-  }, []);
+  }, [setSearchParams]);
 
   const handleSortChange = useCallback((sortValue) => {
     setSortBy(sortValue);
@@ -265,8 +306,12 @@ function Ecoles() {
 
   const handlePageChange = useCallback((page) => {
     setCurrentPage(page);
+    setSearchParams((prev) => {
+      prev.set("page", page);
+      return prev;
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
+  }, [setSearchParams]);
 
   if (loading) {
     return (

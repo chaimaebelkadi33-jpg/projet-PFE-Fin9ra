@@ -26,10 +26,17 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 
 // ========== ROUTES ADMIN (protégées) ==========
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/schools', [SchoolController::class, 'adminIndex']);
-    Route::post('/schools', [SchoolController::class, 'adminStore']);
-    Route::put('/schools/{id}', [SchoolController::class, 'adminUpdate']);
-    Route::delete('/schools/{id}', [SchoolController::class, 'adminDestroy']);
+    Route::get('/schools', [\App\Http\Controllers\Api\Admin\SchoolAdminController::class, 'index']);
+    Route::post('/schools', [\App\Http\Controllers\Api\Admin\SchoolAdminController::class, 'store']);
+    Route::put('/schools/{id}', [\App\Http\Controllers\Api\Admin\SchoolAdminController::class, 'update']);
+    Route::delete('/schools/{id}', [\App\Http\Controllers\Api\Admin\SchoolAdminController::class, 'destroy']);
+    Route::get('/schools/{id}', [\App\Http\Controllers\Api\Admin\SchoolAdminController::class, 'show']);
+    
+    // Gestion des formations
+    Route::get('/schools/{schoolId}/formations', [\App\Http\Controllers\Api\Admin\FormationAdminController::class, 'index']);
+    Route::post('/schools/{schoolId}/formations', [\App\Http\Controllers\Api\Admin\FormationAdminController::class, 'store']);
+    Route::put('/formations/{id}', [\App\Http\Controllers\Api\Admin\FormationAdminController::class, 'update']);
+    Route::delete('/formations/{id}', [\App\Http\Controllers\Api\Admin\FormationAdminController::class, 'destroy']);
     
     // Gestion des avis
     Route::get('/reviews', [ReviewAdminController::class, 'index']);
