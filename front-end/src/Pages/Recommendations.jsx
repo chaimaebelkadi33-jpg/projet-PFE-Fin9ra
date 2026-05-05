@@ -37,7 +37,9 @@ const Recommendations = () => {
     budget: '',
     school_type: '',
     study_level: '',
-    interest_domain: ''
+    interest_domain: '',
+    a_internat: false,
+    est_alternance: false
   });
 
   const dropdownRef = useRef(null);
@@ -256,6 +258,32 @@ const Recommendations = () => {
           field: 'interest_domain',
           options: filters.interest_domains
         })}
+
+        <div className="rec-extra-options">
+          <div className="rec-checkbox-card" onClick={() => setFormData(prev => ({ ...prev, a_internat: !prev.a_internat }))}>
+             <input 
+              type="checkbox" 
+              checked={formData.a_internat} 
+              onChange={() => {}} 
+            />
+            <div className="checkbox-info">
+              <span className="checkbox-label">Besoin d'internat ?</span>
+              <span className="checkbox-desc">Afficher en priorité les écoles avec logement</span>
+            </div>
+          </div>
+          
+          <div className="rec-checkbox-card" onClick={() => setFormData(prev => ({ ...prev, est_alternance: !prev.est_alternance }))}>
+            <input 
+              type="checkbox" 
+              checked={formData.est_alternance} 
+              onChange={() => {}} 
+            />
+            <div className="checkbox-info">
+              <span className="checkbox-label">Formation en alternance ?</span>
+              <span className="checkbox-desc">Études et travail en entreprise</span>
+            </div>
+          </div>
+        </div>
 
         <button type="submit" className="rec-page-button" disabled={processing}>
           {processing ? 'Analyse...' : 'Generer Recommandations'}

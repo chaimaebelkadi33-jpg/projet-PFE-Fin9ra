@@ -36,17 +36,31 @@ class FormationAdminController extends Controller
             'description' => 'nullable|string',
             'duree_mois' => 'nullable|integer',
             'niveau_acces' => 'nullable|string',
+            'objectifs' => 'nullable',
+            'competences' => 'nullable',
+            'debouches' => 'nullable',
+            'conditions_acces' => 'nullable|string',
+            'code' => 'nullable|string',
+            'responsable_nom' => 'nullable|string',
+            'responsable_email' => 'nullable|email',
+            'est_alternance' => 'nullable|boolean',
+            'est_international' => 'nullable|boolean',
         ]);
 
-        $formation = Formation::create([
-            'school_id' => $schoolId,
-            'nom' => $request->nom,
-            'type' => $request->type,
-            'specialites' => $request->specialites ? json_encode($request->specialites) : null,
-            'description' => $request->description,
-            'duree_mois' => $request->duree_mois,
-            'niveau_acces' => $request->niveau_acces,
-        ]);
+        $data = $request->all();
+        $data['school_id'] = $schoolId;
+
+        // Handle JSON arrays if they come as strings from FormData
+        foreach (['specialites', 'objectifs', 'competences', 'debouches'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = json_decode($data[$field], true);
+            }
+        }
+
+        $data['est_alternance'] = $request->boolean('est_alternance');
+        $data['est_international'] = $request->boolean('est_international');
+
+        $formation = Formation::create($data);
 
         return response()->json($formation, 201);
     }
@@ -66,13 +80,34 @@ class FormationAdminController extends Controller
             'description' => 'nullable|string',
             'duree_mois' => 'nullable|integer',
             'niveau_acces' => 'nullable|string',
+            'objectifs' => 'nullable',
+            'competences' => 'nullable',
+            'debouches' => 'nullable',
+            'conditions_acces' => 'nullable|string',
+            'code' => 'nullable|string',
+            'responsable_nom' => 'nullable|string',
+            'responsable_email' => 'nullable|email',
+            'est_alternance' => 'nullable|boolean',
+            'est_international' => 'nullable|boolean',
         ]);
 
-        if ($request->has('specialites')) {
-            $request->merge(['specialites' => json_encode($request->specialites)]);
+        $data = $request->all();
+
+        // Handle JSON arrays if they come as strings from FormData
+        foreach (['specialites', 'objectifs', 'competences', 'debouches'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = json_decode($data[$field], true);
+            }
         }
 
-        $formation->update($request->all());
+        if ($request->has('est_alternance')) {
+            $data['est_alternance'] = $request->boolean('est_alternance');
+        }
+        if ($request->has('est_international')) {
+            $data['est_international'] = $request->boolean('est_international');
+        }
+
+        $formation->update($data);
 
         return response()->json($formation);
     }

@@ -303,7 +303,7 @@
   border-bottom: 2px solid #e0e0e0;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: #4a90e2 #f0f0f0;
+  scrollbar-color: #00ced1 #f0f0f0;
 }
 
 .tabs-navigation::-webkit-scrollbar {
@@ -316,7 +316,7 @@
 }
 
 .tabs-navigation::-webkit-scrollbar-thumb {
-  background: #4a90e2;
+  background: #00ced1;
   border-radius: 3px;
 }
 
@@ -336,20 +336,20 @@
 }
 
 .tab-button:hover {
-  color: #4a90e2;
-  background-color: #f5f9ff;
+  color: #00ced1;
+  background-color: #f0fbff;
   transform: translateY(-2px);
 }
 
 .tab-button:focus {
-  outline: 2px solid #4a90e2;
+  outline: 2px solid #00ced1;
   outline-offset: 2px;
 }
 
 .tab-button.active {
-  color: #4a90e2;
+  color: #00ced1;
   font-weight: 600;
-  background-color: #f5f9ff;
+  background-color: #f0fbff;
 }
 
 .tab-button.active::after {
@@ -359,7 +359,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #4a90e2, #357abd);
+  background: linear-gradient(90deg, #00ced1, #002147);
   border-radius: 3px;
 }
 
@@ -377,7 +377,7 @@
 .show-more-btn {
   margin-top: 20px;
   padding: 10px 25px;
-  background: linear-gradient(135deg, #4a90e2, #357abd);
+  background: linear-gradient(135deg, #00ced1, #002147);
   color: white;
   border: none;
   border-radius: 25px;
@@ -392,9 +392,9 @@
 }
 
 .show-more-btn:hover {
-  background: linear-gradient(135deg, #357abd, #2a6495);
+  background: linear-gradient(135deg, #002147, #001a36);
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 206, 209, 0.3);
 }
 
 .show-more-btn:active {
@@ -429,7 +429,7 @@
 .specialty-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  border-color: #4a90e2;
+  border-color: #00ced1;
 }
 
 .specialty-card.small {
@@ -497,7 +497,7 @@
 
 .info-icon {
   font-size: 2rem;
-  color: #4a90e2;
+  color: #00ced1;
   flex-shrink: 0;
 }
 
@@ -533,7 +533,7 @@
   background: linear-gradient(135deg, #f8f9fa, #ffffff);
   border-radius: 12px;
   padding: 25px;
-  border-left: 4px solid #4a90e2;
+  border-left: 4px solid #00ced1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -586,17 +586,17 @@
 .debouché-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-color: #4a90e2;
+  border-color: #00ced1;
 }
 
 .debouché-icon {
   font-size: 1.5rem;
-  color: #2196f3;
+  color: #00ced1;
   flex-shrink: 0;
 }
 
 .debouché-name {
-  color: #1565c0;
+  color: #002147;
   font-weight: 600;
   font-size: 1rem;
   word-break: break-word;
@@ -626,7 +626,7 @@
 
 .cost-icon {
   font-size: 2.5rem;
-  color: #4a90e2;
+  color: #00ced1;
   flex-shrink: 0;
 }
 
@@ -684,7 +684,7 @@
 
 .contact-icon {
   font-size: 2.5rem;
-  color: #4a90e2;
+  color: #00ced1;
   flex-shrink: 0;
 }
 
@@ -715,7 +715,7 @@
 }
 
 .contact-link:hover {
-  color: #4a90e2;
+  color: #00ced1;
   text-decoration: underline;
 }
 
@@ -749,7 +749,7 @@
 
 .mission-icon {
   font-size: 1.2rem;
-  color: #4a90e2;
+  color: #00ced1;
   flex-shrink: 0;
   margin-top: 3px;
 }
@@ -770,7 +770,7 @@
 }
 
 .floating-action-btn {
-  background: linear-gradient(135deg, #4a90e2, #357abd);
+  background: linear-gradient(135deg, #00ced1, #002147);
   color: white;
   border: none;
   padding: 15px 30px;
@@ -977,7 +977,7 @@
 
 .contact-summary-icon {
   font-size: 2rem;
-  color: #4a90e2;
+  color: #00ced1;
   background: #f0f7ff;
   padding: 12px;
   border-radius: 50%;
@@ -1662,7 +1662,7 @@
 
 .subscription-badge {
   background: #f0f7ff;
-  color: #4a90e2;
+  color: #00ced1;
   padding: 6px 12px;
   border-radius: 15px;
   font-size: 0.85rem;

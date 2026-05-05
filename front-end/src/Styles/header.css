@@ -431,6 +431,7 @@
 
 .recommendation-link:hover {
   background: rgba(59, 130, 246, 0.1) !important;
+  color: cyan;
   transform: translateY(-1px);
 }
 

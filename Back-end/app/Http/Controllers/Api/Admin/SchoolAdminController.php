@@ -58,6 +58,8 @@ class SchoolAdminController extends Controller
             'admission_concours_note_min' => 'nullable|numeric',
             'admission_prive_possible' => 'nullable|boolean',
             'admission_concours_possible' => 'nullable|boolean',
+            'bac_min_note' => 'nullable|numeric',
+            'debouches' => 'nullable',
         ]);
 
         $data = $request->all();
@@ -69,6 +71,9 @@ class SchoolAdminController extends Controller
         }
         if (isset($data['prerequis_bac_type']) && is_string($data['prerequis_bac_type'])) {
             $data['prerequis_bac_type'] = json_decode($data['prerequis_bac_type'], true);
+        }
+        if (isset($data['debouches']) && is_string($data['debouches'])) {
+            $data['debouches'] = json_decode($data['debouches'], true);
         }
 
         // Convert boolean strings to actual booleans
@@ -123,6 +128,8 @@ class SchoolAdminController extends Controller
             'admission_concours_note_min' => 'nullable|numeric',
             'admission_prive_possible' => 'nullable|boolean',
             'admission_concours_possible' => 'nullable|boolean',
+            'bac_min_note' => 'nullable|numeric',
+            'debouches' => 'nullable',
         ]);
 
         $data = $request->all();
@@ -134,6 +141,9 @@ class SchoolAdminController extends Controller
         }
         if (isset($data['prerequis_bac_type']) && is_string($data['prerequis_bac_type'])) {
             $data['prerequis_bac_type'] = json_decode($data['prerequis_bac_type'], true);
+        }
+        if (isset($data['debouches']) && is_string($data['debouches'])) {
+            $data['debouches'] = json_decode($data['debouches'], true);
         }
 
         // Convert boolean strings if they exist in request

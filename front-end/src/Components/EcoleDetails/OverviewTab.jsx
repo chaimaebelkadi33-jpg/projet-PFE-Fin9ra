@@ -22,58 +22,58 @@ function OverviewTab({ school }) {
       'grande_ecole_ingenieur': { 
         label: 'Grande École d\'Ingénieurs', 
         color: '#00cde1',
-        icon: <HiOutlineTrophy style={{ marginRight: '6px' }} />
+        icon: <HiOutlineTrophy className="category-badge-icon" />
       },
       'ecole_ingenieur_publique': { 
         label: 'École d\'Ingénieurs Publique', 
-        color: '#4A90E2',
-        icon: <HiOutlineAcademicCap style={{ marginRight: '6px' }} />
+        color: '#00ced1',
+        icon: <HiOutlineAcademicCap className="category-badge-icon" />
       },
       'ecole_ingenieur_privee': { 
         label: 'École d\'Ingénieurs Privée', 
         color: '#9b59b6',
-        icon: <HiOutlineAcademicCap style={{ marginRight: '6px' }} />
+        icon: <HiOutlineAcademicCap className="category-badge-icon" />
       },
       'faculte_sciences': { 
         label: 'Faculté des Sciences', 
         color: '#27ae60',
-        icon: <HiOutlineBeaker style={{ marginRight: '6px' }} />
+        icon: <HiOutlineBeaker className="category-badge-icon" />
       },
       'faculte_droit_economie': { 
         label: 'Faculté de Droit et Économie', 
         color: '#e67e22',
-        icon: <HiOutlineScale style={{ marginRight: '6px' }} />
+        icon: <HiOutlineScale className="category-badge-icon" />
       },
       'faculte_lettres': { 
         label: 'Faculté des Lettres', 
         color: '#9b59b6',
-        icon: <HiOutlineBookOpen style={{ marginRight: '6px' }} />
+        icon: <HiOutlineBookOpen className="category-badge-icon" />
       },
       'ecole_commerce_gestion': { 
         label: 'École de Commerce et Gestion', 
         color: '#f1c40f',
-        icon: <HiOutlineBriefcase style={{ marginRight: '6px' }} />
+        icon: <HiOutlineBriefcase className="category-badge-icon" />
       },
       'ecole_architecture': { 
         label: 'École d\'Architecture', 
-        color: '#3498db',
-        icon: <HiOutlineBuildingLibrary style={{ marginRight: '6px' }} />
+        color: '#00ced1',
+        icon: <HiOutlineBuildingLibrary className="category-badge-icon" />
       },
       'ecole_sciences_appliquees': { 
         label: 'École des Sciences Appliquées', 
         color: '#1abc9c',
-        icon: <HiOutlineWrench style={{ marginRight: '6px' }} />
+        icon: <HiOutlineWrench className="category-badge-icon" />
       },
       'centre_formation': { 
         label: 'Centre de Formation', 
         color: '#95a5a6',
-        icon: <HiOutlineCpuChip style={{ marginRight: '6px' }} />
+        icon: <HiOutlineCpuChip className="category-badge-icon" />
       }
     };
     return labels[categorie] || { 
       label: 'Établissement', 
       color: '#7f8c8d',
-      icon: <HiOutlineAcademicCap style={{ marginRight: '6px' }} />
+      icon: <HiOutlineAcademicCap className="category-badge-icon" />
     };
   };
 
@@ -120,8 +120,8 @@ function OverviewTab({ school }) {
               <span 
                 className="badge-category"
                 style={{
-                  background: getCategoryLabel(school.categorie_ecole).color,
-                  boxShadow: `0 2px 4px ${getCategoryLabel(school.categorie_ecole).color}33`
+                  '--category-bg': getCategoryLabel(school.categorie_ecole).color,
+                  '--category-shadow': `${getCategoryLabel(school.categorie_ecole).color}33`
                 }}
               >
                 {getCategoryLabel(school.categorie_ecole).icon}
@@ -178,7 +178,7 @@ function OverviewTab({ school }) {
             {school.prerequis_bac_mention && (
               <div className="prerequis-item">
                 <strong>Mention minimale</strong>
-                <p style={{ fontWeight: 'bold' }}>
+                <p className="prerequis-mention-value">
                   {getMentionLabel(school.prerequis_bac_mention)}
                 </p>
               </div>

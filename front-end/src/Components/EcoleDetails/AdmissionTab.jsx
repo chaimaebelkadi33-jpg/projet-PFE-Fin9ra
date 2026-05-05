@@ -1,5 +1,6 @@
 import React from 'react';
 import { HiOutlineBriefcase, HiOutlineBanknotes, HiOutlineAcademicCap, HiOutlineScale, HiOutlineClock } from "react-icons/hi2";
+import "../../Styles/admissionTab.css";
 
 function AdmissionTab({ school, expandedSections, toggleSection }) {
   // Fonction pour parser les tableaux JSON
@@ -55,7 +56,7 @@ function AdmissionTab({ school, expandedSections, toggleSection }) {
             {school.bac_min_note && (
               <div className="info-row">
                 <span className="info-label">Note minimale :</span>
-                <span className="info-value" style={{ color: '#4a90e2', fontWeight: 'bold' }}>{school.bac_min_note}/20</span>
+                <span className="info-value" style={{ color: '#00ced1', fontWeight: 'bold' }}>{school.bac_min_note}/20</span>
               </div>
             )}
           </div>
@@ -97,31 +98,11 @@ function AdmissionTab({ school, expandedSections, toggleSection }) {
             {allDebouches
               .slice(0, expandedSections?.debouches ? undefined : 6)
               .map((debouché, index) => (
-                <div key={index} className="debouché-card" style={{
-                  background: 'white',
-                  padding: '16px',
-                  borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  transition: 'all 0.2s ease',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                }}>
-                  <div style={{
-                    background: '#f0fbff',
-                    padding: '8px',
-                    borderRadius: '8px',
-                    color: '#00ced1',
-                    display: 'flex'
-                  }}>
-                    <HiOutlineBriefcase style={{ fontSize: '18px' }} />
+                <div key={index} className="debouché-card">
+                  <div className="debouché-icon-wrapper">
+                    <HiOutlineBriefcase />
                   </div>
-                  <span className="debouché-name" style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '600', 
-                    color: '#002147' 
-                  }}>{debouché}</span>
+                  <span className="debouché-name">{debouché}</span>
                 </div>
               ))}
           </div>
@@ -137,7 +118,47 @@ function AdmissionTab({ school, expandedSections, toggleSection }) {
       )}
 
       {/* Coûts */}
-      {school.cout && school.cout > 0 && school.cout !== "Information non spécifiée sur la page" && (
+      {(school.cout_public > 0 || school.cout_prive > 0) && (
+        <div className="cost-section">
+          <h3><HiOutlineBanknotes /> Frais de scolarité</h3>
+          <div className="costs-grid">
+            {school.cout_public > 0 && (
+              <div className="cost-card cost-card-public">
+                <div className="cost-main">
+                  <div className="cost-details">
+                    <h4 className="cost-title-public">Voie Publique / Concours</h4>
+                    <p className="cost-amount">{school.cout_public.toLocaleString()} MAD <span style={{ fontSize: '14px', color: '#64748b' }}>/an</span></p>
+                    {school.admission_concours_note_min > 0 && (
+                      <p className="cost-note-admission">
+                        Seuil d'accès estimé : <strong>{school.admission_concours_note_min}/20</strong>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {school.cout_prive > 0 && (
+              <div className="cost-card cost-card-prive">
+                <div className="cost-main">
+                  <div className="cost-details">
+                    <h4 className="cost-title-prive">Voie Privée / Parallèle</h4>
+                    <p className="cost-amount">{school.cout_prive.toLocaleString()} MAD <span style={{ fontSize: '14px', color: '#64748b' }}>/an</span></p>
+                    <p className="cost-note-admission">
+                      Admission sur : <strong>Dossier & Entretien</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="admission-cost-note">
+            * Les frais indiqués sont à titre indicatif et peuvent varier selon l'année académique.
+          </p>
+        </div>
+      )}
+
+      {/* Legacy Coûts Fallback */}
+      {!(school.cout_public > 0 || school.cout_prive > 0) && school.cout && school.cout > 0 && school.cout !== "Information non spécifiée sur la page" && (
         <div className="cost-section">
           <h3>Coûts</h3>
           <div className="cost-card">
@@ -164,5 +185,4 @@ function AdmissionTab({ school, expandedSections, toggleSection }) {
     </div>
   );
 }
-
 export default AdmissionTab;

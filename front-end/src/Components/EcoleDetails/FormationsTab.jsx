@@ -9,6 +9,7 @@ import {
   HiOutlineChevronDown,
   HiOutlineChevronRight,
 } from "react-icons/hi2";
+import "../../Styles/formationsTab.css";
 
 function FormationsTab({ school }) {
   const [expandedFormation, setExpandedFormation] = useState(null);
@@ -31,6 +32,9 @@ function FormationsTab({ school }) {
   const formationsEnriched = formations.map((formation) => ({
     ...formation,
     specialitesList: parseSpecialites(formation.specialites),
+    objectifsList: parseSpecialites(formation.objectifs),
+    competencesList: parseSpecialites(formation.competences),
+    debouchesList: parseSpecialites(formation.debouches),
   }));
 
   const filieres = formationsEnriched.filter(
@@ -71,201 +75,134 @@ function FormationsTab({ school }) {
     if (items.length === 0) return null;
 
     return (
-      <div className="formation-category" style={{ marginBottom: "24px" }}>
-        <h3
-          style={{
-            color: "#002147",
-            marginBottom: "16px",
-            fontSize: "1.2rem",
-            borderBottom: "2px solid #00cde1",
-            display: "inline-block",
-            paddingBottom: "5px",
-          }}
-        >
+      <div className="formation-category">
+        <h3 className="formation-category-title">
           {icon} {title} ({items.length})
         </h3>
         <div className="formations-list">
           {items.map((formation, idx) => {
             const uniqueId = `${title}-${formation.id || idx}`;
+            const isExpanded = expandedFormation === uniqueId;
+            const hasDetails = formation.specialitesList.length > 0;
+
             return (
-              <div
-                key={uniqueId}
-                className="formation-item"
-                style={{ marginBottom: "12px" }}
-              >
+              <div key={uniqueId} className="formation-item">
                 <div
-                  className="formation-header"
-                  onClick={() =>
-                    formation.specialitesList.length > 0 &&
-                    toggleFormation(uniqueId)
-                  }
-                  style={{
-                    cursor:
-                      formation.specialitesList.length > 0
-                        ? "pointer"
-                        : "default",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    padding: "14px 16px",
-                    backgroundColor: "#f8f9fa",
-                    borderRadius: "10px",
-                    marginBottom: "4px",
-                    transition: "all 0.2s ease",
-                    borderLeft:
-                      expandedFormation === uniqueId
-                        ? "3px solid #00cde1"
-                        : "3px solid transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (formation.specialitesList.length > 0) {
-                      e.currentTarget.style.backgroundColor = "#e9ecef";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#f8f9fa";
-                  }}
+                  className={`formation-header ${hasDetails ? "clickable" : ""} ${isExpanded ? "expanded" : ""}`}
+                  onClick={() => hasDetails && toggleFormation(uniqueId)}
                 >
-                  {formation.specialitesList.length > 0 ? (
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        color: "#002147",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {expandedFormation === uniqueId ? (
-                        <HiOutlineChevronDown className="toggle-icon-hi" />
-                      ) : (
-                        <HiOutlineChevronRight className="toggle-icon-hi" />
-                      )}
+                  {hasDetails ? (
+                    <span className="toggle-icon-hi">
+                      {isExpanded ? <HiOutlineChevronDown /> : <HiOutlineChevronRight />}
                     </span>
                   ) : (
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        width: "20px",
-                        color: "#00cde1",
-                      }}
-                    >
-                      <HiOutlineMapPin className="pin-icon-hi" />
-                    </span>
+                    <HiOutlineMapPin className="pin-icon-hi" />
                   )}
-                  <span
-                    style={{
-                      fontWeight: "600",
-                      flex: 1,
-                      color: "#002147",
-                      fontSize: "15px",
-                    }}
-                  >
-                    {formation.nom}
-                  </span>
+                  <span className="formation-name">{formation.nom}</span>
                   
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                  <div className="formation-badges-container">
                     {formation.niveau_acces && (
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          padding: "4px 10px",
-                          borderRadius: "20px",
-                          backgroundColor: "#f0fbff",
-                          color: "#00ced1",
-                          border: "1px solid #00ced144",
-                          fontWeight: "600"
-                        }}
-                        title="Niveau d'accès"
-                      >
+                      <span className="badge-base badge-niveau" title="Niveau d'accès">
                         {formation.niveau_acces}
                       </span>
                     )}
                     
                     {formation.duree_mois && (
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          padding: "4px 10px",
-                          borderRadius: "20px",
-                          backgroundColor: "#f5f9ff",
-                          color: "#4a90e2",
-                          border: "1px solid #4a90e244",
-                          fontWeight: "600"
-                        }}
-                        title="Durée de la formation"
-                      >
+                      <span className="badge-base badge-duree" title="Durée de la formation">
                         {formation.duree_mois} mois
                       </span>
                     )}
 
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        padding: "4px 10px",
-                        borderRadius: "20px",
-                        backgroundColor: "#f8fafc",
-                        color: "#64748b",
-                        border: "1px solid #e2e8f0",
-                        fontWeight: "600"
-                      }}
-                    >
+                    <span className="badge-base badge-type">
                       {formation.type || "Formation"}
                     </span>
 
                     {formation.specialitesList.length > 0 && (
-                      <span
-                        style={{
-                          fontSize: "11px",
-                          color: "#fff",
-                          backgroundColor: "#00ced1",
-                          padding: "4px 12px",
-                          borderRadius: "20px",
-                          fontWeight: "600",
-                          boxShadow: "0 2px 4px rgba(0,206,209,0.2)"
-                        }}
-                      >
+                      <span className="badge-base badge-spec-count">
                         {formation.specialitesList.length} Spéc.
                       </span>
                     )}
                   </div>
                 </div>
 
-                {expandedFormation === uniqueId &&
-                  formation.specialitesList.length > 0 && (
-                    <div
-                      style={{
-                        padding: "16px 16px 16px 45px",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "10px",
-                          backgroundColor: "#f8f9fa",
-                          padding: "12px 16px",
-                          borderRadius: "10px",
-                        }}
-                      >
-                        {formation.specialitesList.map((spec, specIdx) => (
-                          <span
-                            key={specIdx}
-                            style={{
-                              backgroundColor: "#e3f2fd",
-                              color: "#1976d2",
-                              padding: "6px 16px",
-                              borderRadius: "25px",
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              display: "inline-block",
-                            }}
-                          >
-                            {spec}
-                          </span>
-                        ))}
+                {isExpanded && (
+                  <div className="formation-details-expanded">
+                    {formation.description && (
+                      <div className="details-description">
+                        <h4 className="details-subtitle">Description</h4>
+                        <p className="description-text">{formation.description}</p>
                       </div>
+                    )}
+
+                    <div className="details-grid">
+                      {formation.objectifsList.length > 0 && (
+                        <div>
+                          <h4 className="details-grid-title title-objectifs">Objectifs</h4>
+                          <ul className="details-list">
+                            {formation.objectifsList.map((obj, idx) => (
+                              <li key={idx}>{obj}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {formation.competencesList.length > 0 && (
+                        <div>
+                          <h4 className="details-grid-title title-competences">Compétences visées</h4>
+                          <ul className="details-list">
+                            {formation.competencesList.map((comp, idx) => (
+                              <li key={idx}>{comp}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    {(formation.specialitesList.length > 0 || formation.debouchesList.length > 0) && (
+                      <div className="details-tags-section">
+                        {formation.specialitesList.length > 0 && (
+                          <div className="tags-group">
+                            <h4 className="details-subtitle">Spécialités disponibles</h4>
+                            <div className="tags-list">
+                              {formation.specialitesList.map((spec, idx) => (
+                                <span key={idx} className="tag-base tag-specialite">{spec}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {formation.debouchesList.length > 0 && (
+                          <div className="tags-group">
+                            <h4 className="details-subtitle">Débouchés spécifiques</h4>
+                            <div className="tags-list">
+                              {formation.debouchesList.map((deb, idx) => (
+                                <span key={idx} className="tag-base tag-debouche">{deb}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(formation.responsable_nom || formation.conditions_acces) && (
+                      <div className="responsable-box">
+                        {formation.conditions_acces && (
+                          <div style={{ marginBottom: formation.responsable_nom ? "8px" : "0" }}>
+                            <span className="responsable-label">Admission : </span>
+                            <span className="responsable-value">{formation.conditions_acces}</span>
+                          </div>
+                        )}
+                        {formation.responsable_nom && (
+                          <div>
+                            <span className="responsable-label">Responsable : </span>
+                            <span className="responsable-value">{formation.responsable_nom}</span>
+                            {formation.responsable_email && (
+                              <span className="responsable-email"> ({formation.responsable_email})</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -287,16 +224,7 @@ function FormationsTab({ school }) {
   return (
     <div className="formations-tab">
       <div className="formations-tree">
-        <h3
-          style={{
-            color: "#002147",
-            marginBottom: "24px",
-            fontSize: "1.3rem",
-            borderBottom: "2px solid #00cde1",
-            display: "inline-block",
-            paddingBottom: "5px",
-          }}
-        >
+        <h3>
           <HiOutlineAcademicCap className="category-icon-hi" /> Formations &
           Spécialités
         </h3>

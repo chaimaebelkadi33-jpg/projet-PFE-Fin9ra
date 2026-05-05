@@ -1,0 +1,257 @@
+/* FormationsTab.css - Premium Academic Styling */
+
+.formations-tab {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.formations-tree h3 {
+  color: #002147;
+  margin-bottom: 24px;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #00cde1;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.formation-category {
+  margin-bottom: 24px;
+}
+
+.formation-category-title {
+  color: #002147;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  border-bottom: 2px solid #00cde1;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.category-icon-hi {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.formation-item {
+  margin-bottom: 12px;
+}
+
+.formation-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.formation-header.clickable {
+  cursor: pointer;
+}
+
+.formation-header.expanded {
+  border-left: 3px solid #00cde1;
+  background-color: #f1f5f9;
+}
+
+.formation-header:hover.clickable {
+  background-color: #e9ecef;
+}
+
+.toggle-icon-hi, .pin-icon-hi {
+  font-size: 14px;
+  width: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-icon-hi {
+  color: #002147;
+  font-weight: bold;
+}
+
+.pin-icon-hi {
+  color: #00ced1;
+}
+
+.formation-name {
+  font-weight: 600;
+  flex: 1;
+  color: #002147;
+  font-size: 15px;
+}
+
+.formation-badges-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.badge-base {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-niveau {
+  background-color: #f0fbff;
+  color: #00ced1;
+  border: 1px solid rgba(0, 206, 209, 0.2);
+}
+
+.badge-duree {
+  background-color: #f0fbff;
+  color: #00ced1;
+  border: 1px solid rgba(0, 206, 209, 0.2);
+}
+
+.badge-type {
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.badge-spec-count {
+  color: #fff;
+  background-color: #00ced1;
+  box-shadow: 0 2px 4px rgba(0,206,209,0.2);
+}
+
+/* Expanded Details */
+.formation-details-expanded {
+  padding: 16px;
+  margin-bottom: 12px;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-left: 40px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.details-description {
+  margin-bottom: 16px;
+}
+
+.details-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.description-text {
+  font-size: 14px;
+  color: #002147;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.details-grid-title {
+  font-size: 13px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.title-objectifs { color: #00ced1; }
+.title-competences { color: #002147; }
+
+.details-list {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.details-list li {
+  font-size: 13px;
+  color: #002147;
+  margin-bottom: 4px;
+}
+
+.details-tags-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tags-group {
+  margin-bottom: 12px;
+}
+
+.tags-group:last-child {
+  margin-bottom: 0;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-base {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-specialite {
+  background-color: #f0fbff;
+  color: #00ced1;
+  border: 1px solid rgba(0, 206, 209, 0.13);
+}
+
+.tag-debouche {
+  background-color: #e0f7fa;
+  color: #006064;
+  border: 1px solid rgba(0, 96, 100, 0.13);
+}
+
+.responsable-box {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.responsable-label {
+  font-weight: 700;
+  color: #64748b;
+}
+
+.responsable-value {
+  color: #002147;
+}
+
+.responsable-email {
+  color: #00ced1;
+}
+
+.no-info-message {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #e2e8f0;
+}

@@ -1,0 +1,97 @@
+/* AdmissionTab.css - Detailed Admission & Career Styling */
+
+.admission-tab {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.admission-section h3,
+.debouchés-section h3,
+.cost-section h3 {
+  color: #002147;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.admission-section h3 svg,
+.cost-section h3 svg {
+  color: #00ced1;
+}
+
+.debouché-card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.debouché-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-color: #00ced1;
+}
+
+.debouché-icon-wrapper {
+  background: #f0fbff;
+  padding: 8px;
+  border-radius: 8px;
+  color: #00ced1;
+  display: flex;
+}
+
+.debouché-icon-wrapper svg {
+  font-size: 18px;
+}
+
+.debouché-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #002147;
+}
+
+.costs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.cost-card-public {
+  border-left: 4px solid #10b981 !important;
+}
+
+.cost-card-prive {
+  border-left: 4px solid #00ced1 !important;
+}
+
+.cost-title-public {
+  color: #10b981;
+}
+
+.cost-title-prive {
+  color: #00ced1;
+}
+
+.cost-note-admission {
+  font-size: 13px;
+  margin-top: 5px;
+  color: #64748b;
+}
+
+.cost-note-admission strong {
+  color: #002147;
+}
+
+.admission-cost-note {
+  margin-top: 15px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-style: italic;
+}

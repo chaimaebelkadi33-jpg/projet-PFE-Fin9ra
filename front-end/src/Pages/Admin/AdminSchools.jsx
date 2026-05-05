@@ -79,6 +79,8 @@ const AdminSchools = () => {
     admission_concours_note_min: "",
     admission_prive_possible: false,
     admission_concours_possible: true,
+    bac_min_note: "",
+    debouches: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -184,6 +186,8 @@ const AdminSchools = () => {
       admission_concours_note_min: "",
       admission_prive_possible: false,
       admission_concours_possible: true,
+      bac_min_note: "",
+      debouches: "",
     });
     setEditingSchool(null);
     setLogoFile(null);
@@ -232,6 +236,10 @@ const AdminSchools = () => {
       admission_concours_note_min: school.admission_concours_note_min || "",
       admission_prive_possible: !!school.admission_prive_possible,
       admission_concours_possible: school.admission_concours_possible !== false,
+      bac_min_note: school.bac_min_note || "",
+      debouches: Array.isArray(school.debouches)
+        ? school.debouches.join(", ")
+        : school.debouches || "",
     });
 
     // Setup Logo preview if it exists
@@ -329,7 +337,7 @@ const AdminSchools = () => {
       let value = formData[key];
 
       // Handle specific types
-      if (key === "mots_cles_recherche" || key === "prerequis_bac_type") {
+      if (key === "mots_cles_recherche" || key === "prerequis_bac_type" || key === "debouches") {
         const arrayValue = value
           ? value
               .split(",")
@@ -1072,6 +1080,24 @@ const AdminSchools = () => {
                       </div>
                     </div>
                     <div className="form-group">
+                      <label>Note Min Bac (Seuil Global)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineStar className="input-icon" />
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="Ex: 12.0"
+                          value={formData.bac_min_note}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              bac_min_note: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
                       <label>Mention Bac Requise</label>
                       <div className="input-with-icon">
                         <HiOutlineIdentification className="input-icon" />
@@ -1233,6 +1259,35 @@ const AdminSchools = () => {
                             })
                           }
                           rows="5"
+                          style={{ paddingLeft: "50px", paddingTop: "15px" }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h3 className="form-section-title">
+                    <HiOutlineQueueList /> Débouchés & Carrières
+                  </h3>
+                  <div className="form-fields-grid full-width">
+                    <div className="form-group">
+                      <label>Débouchés (séparés par des virgules)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineQueueList
+                          className="input-icon"
+                          style={{ top: "20px" }}
+                        />
+                        <textarea
+                          placeholder="Ex: Ingénieur Logiciel, Consultant Cloud, Data Scientist..."
+                          value={formData.debouches}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              debouches: e.target.value,
+                            })
+                          }
+                          rows="3"
                           style={{ paddingLeft: "50px", paddingTop: "15px" }}
                         />
                       </div>

@@ -18,6 +18,8 @@ import {
   HiOutlineClock,
   HiOutlineIdentification,
   HiOutlineExclamationTriangle,
+  HiOutlineEnvelope,
+  HiOutlineQueueList,
 } from "react-icons/hi2";
 import "../../Styles/admin.css";
 
@@ -48,6 +50,13 @@ const AdminFormations = () => {
     niveau_acces: "",
     est_alternance: false,
     est_international: false,
+    objectifs: "",
+    competences: "",
+    debouches: "",
+    conditions_acces: "",
+    code: "",
+    responsable_nom: "",
+    responsable_email: "",
   });
 
   const loadData = useCallback(async () => {
@@ -82,6 +91,13 @@ const AdminFormations = () => {
       niveau_acces: "",
       est_alternance: false,
       est_international: false,
+      objectifs: "",
+      competences: "",
+      debouches: "",
+      conditions_acces: "",
+      code: "",
+      responsable_nom: "",
+      responsable_email: "",
     });
     setEditingFormation(null);
     setError("");
@@ -94,30 +110,34 @@ const AdminFormations = () => {
 
   const handleEdit = (formation) => {
     setEditingFormation(formation);
-    
-    let specs = "";
-    if (formation.specialites) {
-      if (Array.isArray(formation.specialites)) {
-        specs = formation.specialites.join(", ");
-      } else if (typeof formation.specialites === 'string') {
-        try {
-          const parsed = JSON.parse(formation.specialites);
-          specs = Array.isArray(parsed) ? parsed.join(", ") : formation.specialites;
-        } catch (e) {
-          specs = formation.specialites;
-        }
+
+    const formatArrayField = (field) => {
+      if (!field) return "";
+      if (Array.isArray(field)) return field.join(", ");
+      try {
+        const parsed = JSON.parse(field);
+        return Array.isArray(parsed) ? parsed.join(", ") : field;
+      } catch (e) {
+        return field;
       }
-    }
+    };
 
     setFormData({
       nom: formation.nom || "",
       type: formation.type || "",
-      specialites: specs,
+      specialites: formatArrayField(formation.specialites),
       description: formation.description || "",
       duree_mois: formation.duree_mois || "",
       niveau_acces: formation.niveau_acces || "",
       est_alternance: !!formation.est_alternance,
       est_international: !!formation.est_international,
+      objectifs: formatArrayField(formation.objectifs),
+      competences: formatArrayField(formation.competences),
+      debouches: formatArrayField(formation.debouches),
+      conditions_acces: formation.conditions_acces || "",
+      code: formation.code || "",
+      responsable_nom: formation.responsable_nom || "",
+      responsable_email: formation.responsable_email || "",
     });
     setShowModal(true);
   };
@@ -155,13 +175,15 @@ const AdminFormations = () => {
     setSubmitting(true);
     setError("");
 
-    const specialitesArray = formData.specialites
-      ? formData.specialites.split(",").map((s) => s.trim()).filter((s) => s !== "")
-      : [];
+    const parseArray = (str) => 
+      str ? str.split(",").map((s) => s.trim()).filter((s) => s !== "") : [];
 
     const data = {
       ...formData,
-      specialites: specialitesArray,
+      specialites: parseArray(formData.specialites),
+      objectifs: parseArray(formData.objectifs),
+      competences: parseArray(formData.competences),
+      debouches: parseArray(formData.debouches),
     };
 
     try {
@@ -343,6 +365,48 @@ const AdminFormations = () => {
                         />
                       </div>
                     </div>
+                    <div className="form-group">
+                      <label>Code Formation</label>
+                      <div className="input-with-icon">
+                        <HiOutlineTag className="input-icon" />
+                        <input
+                          type="text"
+                          placeholder="Ex: MST-INFO"
+                          value={formData.code}
+                          onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-section">
+                  <h3 className="form-section-title"><HiOutlineIdentification /> Responsable</h3>
+                  <div className="form-fields-grid">
+                    <div className="form-group">
+                      <label>Nom du responsable</label>
+                      <div className="input-with-icon">
+                        <HiOutlineIdentification className="input-icon" />
+                        <input
+                          type="text"
+                          placeholder="Pr. Nom Prénom"
+                          value={formData.responsable_nom}
+                          onChange={(e) => setFormData({ ...formData, responsable_nom: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Email du responsable</label>
+                      <div className="input-with-icon">
+                        <HiOutlineEnvelope className="input-icon" />
+                        <input
+                          type="email"
+                          placeholder="responsable@ecole.ma"
+                          value={formData.responsable_email}
+                          onChange={(e) => setFormData({ ...formData, responsable_email: e.target.value })}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -350,14 +414,50 @@ const AdminFormations = () => {
                   <h3 className="form-section-title"><HiOutlineTag /> Spécialités & Description</h3>
                   <div className="form-fields-grid full-width">
                     <div className="form-group">
-                      <label>Spécialités (séparées par des virgules)</label>
+                      <label>Objectifs (séparés par des virgules)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineDocumentText className="input-icon" />
+                        <textarea
+                          placeholder="Ex: Former des experts en IA, Maîtriser le Big Data..."
+                          value={formData.objectifs}
+                          onChange={(e) => setFormData({ ...formData, objectifs: e.target.value })}
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Compétences visées (séparées par des virgules)</label>
                       <div className="input-with-icon">
                         <HiOutlineTag className="input-icon" />
-                        <input
-                          type="text"
-                          placeholder="Ex: Développement, Réseaux, IA..."
-                          value={formData.specialites}
-                          onChange={(e) => setFormData({ ...formData, specialites: e.target.value })}
+                        <textarea
+                          placeholder="Ex: Java, Python, Gestion de projet..."
+                          value={formData.competences}
+                          onChange={(e) => setFormData({ ...formData, competences: e.target.value })}
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Débouchés (séparés par des virgules)</label>
+                      <div className="input-with-icon">
+                        <HiOutlineQueueList className="input-icon" />
+                        <textarea
+                          placeholder="Ex: Data Scientist, Ingénieur DevOps..."
+                          value={formData.debouches}
+                          onChange={(e) => setFormData({ ...formData, debouches: e.target.value })}
+                          rows="2"
+                        />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Conditions d'accès</label>
+                      <div className="input-with-icon">
+                        <HiOutlineIdentification className="input-icon" />
+                        <textarea
+                          placeholder="Ex: Sélection sur dossier + Entretien..."
+                          value={formData.conditions_acces}
+                          onChange={(e) => setFormData({ ...formData, conditions_acces: e.target.value })}
+                          rows="2"
                         />
                       </div>
                     </div>

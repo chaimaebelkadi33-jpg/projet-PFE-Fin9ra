@@ -76,7 +76,7 @@
 
 .badge-sous-domaine {
   background: #f5f9ff;
-  color: #4a90e2;
+  color: #00ced1;
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -99,7 +99,7 @@
 
 .badge-internat {
   background: #f0fbfd;
-  color: #4a90e2;
+  color: #00ced1;
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -112,7 +112,7 @@
 .badge-internat svg {
   margin-right: 8px;
   font-size: 1.1rem;
-  color: #4a90e2;
+  color: #00ced1;
 }
 
 /* Description Section */
@@ -133,7 +133,7 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(to bottom, #00ced1, #4a90e2);
+  background: linear-gradient(to bottom, #00ced1, #002147);
 }
 
 .description-section h3 {
@@ -181,7 +181,7 @@
 
 .prerequis-section h3 svg {
   margin-right: 12px;
-  color: #4a90e2;
+  color: #00ced1;
 }
 
 .prerequis-grid {
@@ -215,7 +215,7 @@
 }
 
 .note-minimale {
-  color: #4a90e2 !important;
+  color: #00ced1 !important;
   font-size: 1.2rem !important;
   font-weight: 800 !important;
 }
@@ -303,9 +303,9 @@
 
 /* Colors for specific cards */
 .card-type .info-icon-wrapper { background: #f0fbff; color: #00ced1; }
-.card-duration .info-icon-wrapper { background: #f5f9ff; color: #4a90e2; }
+.card-duration .info-icon-wrapper { background: #f0fbff; color: #00ced1; }
 .card-diploma .info-icon-wrapper { background: #f0fbff; color: #00ced1; }
-.card-cost .info-icon-wrapper { background: #f5f9ff; color: #4a90e2; }
+.card-cost .info-icon-wrapper { background: #f0fbff; color: #00ced1; }
 
 .info-content h4 {
   margin: 0 0 6px;
@@ -384,3 +384,26 @@
   .prerequis-grid { grid-template-columns: 1fr; }
   .info-card { padding: 20px; }
 }
+
+.category-badge-icon {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.badge-category {
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 20px;
+  color: white !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: var(--category-bg, #7f8c8d);
+  box-shadow: 0 2px 4px var(--category-shadow, rgba(0, 0, 0, 0.1));
+}
+
+.prerequis-mention-value {
+  font-weight: bold;
+}
+
+

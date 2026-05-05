@@ -230,7 +230,11 @@ class RecommendationController extends Controller
                 return false;
             }
 
-            return !$schoolTypePreference || $schoolType === $schoolTypePreference || $this->normalizeText((string)$school->categorie_ecole) === $schoolTypePreference;
+            if ($schoolTypePreference && ($schoolType !== $schoolTypePreference && $this->normalizeText((string)$school->categorie_ecole) !== $schoolTypePreference)) {
+                return false;
+            }
+
+            return true;
         })
         ->map(function (School $school) use ($request, $ville, $interestDomain) {
             $school->recommendation_score = $this->calculateRecommendationScore($school, $request);
@@ -336,6 +340,11 @@ class RecommendationController extends Controller
                     'type' => $formation->type,
                     'niveau_acces' => $formation->niveau_acces,
                     'specialites' => $specialites,
+                    'objectifs' => $formation->objectifs,
+                    'competences' => $formation->competences,
+                    'debouches' => $formation->debouches,
+                    'est_alternance' => (bool)$formation->est_alternance,
+                    'est_international' => (bool)$formation->est_international,
                     'match_domaine' => $interestDomain ? $this->matchesInterestDomain($interestDomain, $formationText, '') : null,
                     'match_niveau' => $studyLevel ? $this->matchesStudyLevel($studyLevel, $formationText) : null,
                 ];
@@ -349,24 +358,36 @@ class RecommendationController extends Controller
             return [
                 'id' => $school->id,
                 'nom' => $school->nom,
+                'short_name' => $school->short_name,
                 'ville' => $school->ville,
                 'type' => $school->type,
+                'categorie_ecole' => $school->categorie_ecole,
+                'domaine_principal' => $school->domaine_principal,
+                'a_internat' => (bool)$school->a_internat,
                 'description' => $school->description,
+                'presentation' => $school->presentation,
                 'diplome' => $school->diplome,
                 'admission' => $school->admission,
                 'dureeEtudes' => $school->dureeEtudes,
-                'cout' => $school->cout,
+                'cout_public' => $school->cout_public,
+                'cout_prive' => $school->cout_prive,
+                'admission_concours_note_min' => $school->admission_concours_note_min,
                 'bac_min_note' => $school->bac_min_note,
+                'prerequis_bac_type' => $school->prerequis_bac_type,
+                'debouches' => $school->debouches,
                 'note' => $school->note,
+                'hard_match_flags' => $school->hard_match_flags ?? null,
+                'recommendation_reasons' => $school->recommendation_reasons ?? null,
+                'recommendation_score' => $school->recommendation_score ?? null,
                 'compatibilite' => [
                     'match_domaine' => $interestDomain ? $this->matchesInterestDomain($interestDomain, $schoolText, $schoolType) : null,
-                    'match_bac' => $bacType ? $this->matchesAcademicTrack($bacType, $schoolText, $schoolType) : null,
+                    'match_bac' => $bacType ? $this->matchesAcademicTrack($bacType, $schoolText, $schoolType, $school->prerequis_bac_type) : null,
                     'match_niveau' => $studyLevel ? $this->matchesStudyLevel($studyLevel, $schoolText) : null,
-                    'budget_ok' => $budgetMax ? (((float) ($school->cout ?? 0) <= 0) || ((float) ($school->cout ?? 0) <= $budgetMax)) : null,
+                    'budget_ok' => $budgetMax ? (((float) ($school->cout_public ?? 0) <= $budgetMax) || ((float) ($school->cout_prive ?? 0) <= $budgetMax)) : null,
                     'bac_eligible' => $studentNote !== null ? (($school->bac_min_note ?? 0) <= 0 || $studentNote >= (float) $school->bac_min_note) : null,
                 ],
                 'formations_pertinentes' => $relevantFormations,
-                'formations' => $formations->take(8)->values(),
+                'formations' => $formations->take(10)->values(),
             ];
         })->values()->toArray();
     }
@@ -434,7 +455,9 @@ class RecommendationController extends Controller
         "- Type Bac: {$studentProfile['bac_type']}\n" .
         "- Ville préférée: {$studentProfile['ville_preferee']}\n" .
         "- Budget: {$studentProfile['budget_annuel']}\n" .
-        "- Domaine d'intérêt: {$studentProfile['domaine_interet']}\n\n" .
+        "- Domaine d'intérêt: {$studentProfile['domaine_interet']}\n" .
+        "- Internat souhaité: " . ($request->input('a_internat') ? 'Oui' : 'Indifférent') . "\n" .
+        "- Alternance souhaitée: " . ($request->input('est_alternance') ? 'Oui' : 'Indifférent') . "\n\n" .
 
         "ÉCOLES CANDIDATES (catalogue complet après contraintes dures seulement):\n" .
         json_encode($schoolsList, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n\n" .
@@ -444,16 +467,17 @@ class RecommendationController extends Controller
         "2. Priorité CRITIQUE: \n" .
         "   - Le domaine d'intérêt doit correspondre au champ 'domaine' de l'école ou aux formations proposées.\n" .
         "   - La compatibilité avec le type de bac (match_bac) est éliminatoire.\n" .
+        "   - Vérifie 'prerequis_bac_type' dans les données de l'école s'il existe.\n" .
         "3. Coût: Le champ 'cout_estime' est déjà calculé pour cet étudiant (Public vs Privé selon sa note). Respecte le budget s'il est spécifié.\n" .
-        "4. Analyse multicritère: Privilégie les écoles avec match_domaine=true. Si plusieurs écoles matchent, utilise la ville préférée comme critère de départage.\n" .
-        "5. N'invente pas d'informations. Utilise uniquement les données fournies.\n" .
+        "4. Analyse multicritère: Privilégie les écoles avec match_domaine=true. Si plusieurs écoles matchent, utilise la ville préférée et les options (internat, alternance) comme critère de départage.\n" .
+        "5. N'invente pas d'informations. Utilise uniquement les données fournies (débouchés, objectifs, etc. pour justifier ton choix).\n" .
         "6. Réponds UNIQUEMENT en JSON: {\"school_ids\": [id1, id2, id3]}\n\n" .
 
         "RÈGLES MÉTIER MAROC:\n" .
-        "- Écoles d'Ingénieurs (ENSA, ENAM, etc.): Bac Math/SVT/PC uniquement.\n" .
-        "- Facultés/Universités: Plus flexibles mais vérifier le domaine.\n" .
+        "- Écoles d'Ingénieurs (ENSA, ENAM, IAV, etc.): Bac Math/SVT/PC uniquement.\n" .
         "- Écoles de Commerce (ENCG, ISCAE, etc.): Priorité Bac Eco, mais ouvert aux autres si bon score.\n" .
-        "- Internat: Si l'étudiant change de ville, privilégie les écoles avec a_internat=true.";
+        "- Internat: Si l'étudiant change de ville et a_internat=true, c'est un point fort majeur.\n" .
+        "- Alternance: Privilégie les formations avec est_alternance=true si l'utilisateur l'a demandé.";
 
         return $prompt;
     }
@@ -542,6 +566,15 @@ class RecommendationController extends Controller
 
         if ($studyLevel && $this->matchesStudyLevel($studyLevel, $schoolText)) {
             $score += 12;
+        }
+
+        if ($request->input('a_internat') && $school->a_internat) {
+            $score += 15;
+        }
+
+        $hasAlternance = $school->formations->contains('est_alternance', true);
+        if ($request->input('est_alternance') && $hasAlternance) {
+            $score += 15;
         }
 
         $score += ((float) $school->note * 2);
@@ -659,18 +692,25 @@ class RecommendationController extends Controller
     {
         $formationSpecialities = $school->formations
             ->map(function ($formation) {
-                $specialites = is_array($formation->specialites)
-                    ? implode(' ', $formation->specialites)
-                    : (string) ($formation->specialites ?? '');
+                $specialites = is_array($formation->specialites) ? implode(' ', $formation->specialites) : (string)($formation->specialites ?? '');
+                $objectifs = is_array($formation->objectifs) ? implode(' ', $formation->objectifs) : (string)$formation->objectifs;
+                $competences = is_array($formation->competences) ? implode(' ', $formation->competences) : (string)$formation->competences;
+                $debouches = is_array($formation->debouches) ? implode(' ', $formation->debouches) : (string)$formation->debouches;
 
                 return implode(' ', array_filter([
                     $formation->nom,
                     $formation->type,
                     $formation->niveau_acces,
                     $specialites,
+                    $objectifs,
+                    $competences,
+                    $debouches
                 ]));
             })
             ->join(' ');
+
+        $schoolDebouches = is_array($school->debouches) ? implode(' ', $school->debouches) : (string)$school->debouches;
+        $motsCles = is_array($school->mots_cles_recherche) ? implode(' ', $school->mots_cles_recherche) : (string)$school->mots_cles_recherche;
 
         return $this->normalizeText(implode(' ', array_filter([
             $school->nom,
@@ -683,6 +723,8 @@ class RecommendationController extends Controller
             $school->diplome,
             $school->admission,
             $school->dureeEtudes,
+            $schoolDebouches,
+            $motsCles,
             $formationSpecialities,
         ])));
     }
@@ -735,8 +777,17 @@ class RecommendationController extends Controller
         ][$budget] ?? 1000000;
     }
 
-    private function matchesAcademicTrack(string $bacType, string $schoolText, string $schoolType): bool
+    private function matchesAcademicTrack(string $bacType, string $schoolText, string $schoolType, $prerequis = null): bool
     {
+        // Si des prérequis spécifiques sont définis en base
+        if ($prerequis && is_array($prerequis) && !empty($prerequis)) {
+            foreach ($prerequis as $req) {
+                if (str_contains($bacType, $this->normalizeText((string)$req))) {
+                    return true;
+                }
+            }
+        }
+
         if (str_contains($bacType, 'math') || str_contains($bacType, 'physique') || str_contains($bacType, 'ingenieur')) {
             return str_contains($schoolText, 'ingenieur') || str_contains($schoolType, 'technique') || str_contains($schoolText, 'sciences');
         }
