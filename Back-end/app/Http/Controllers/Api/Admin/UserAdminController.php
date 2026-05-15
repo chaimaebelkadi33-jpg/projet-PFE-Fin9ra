@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
+use App\Events\UserDeleted;
+
 class UserAdminController extends Controller
 {
     /**
@@ -127,6 +129,8 @@ class UserAdminController extends Controller
 
         // Delete associated reviews first (if not handled by cascade)
         $user->reviews()->delete();
+        
+        event(new UserDeleted($user));
         
         $user->delete();
 

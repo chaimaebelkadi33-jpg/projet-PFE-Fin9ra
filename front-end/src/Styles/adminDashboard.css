@@ -161,3 +161,39 @@
     gap: 10px;
   }
 }
+
+/* User Activity Specific Styles */
+.activity-bar {
+  background: linear-gradient(90deg, #00d1ff, #0072ff) !important;
+  box-shadow: 0 0 10px rgba(0, 209, 255, 0.3);
+}
+
+.chart-bar:hover {
+  background-color: rgba(0, 209, 255, 0.4) !important;
+  border-top-width: 5px !important;
+}
+
+.chart-bar:hover .bar-tooltip {
+  top: -30px !important;
+  font-size: 13px !important;
+  color: white !important;
+  text-shadow: 0 0 5px #00d1ff;
+}
+
+.activity-stats-section .section-header h3 {
+  color: var(--cyan);
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.activity-stats-section .section-header h3::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 24px;
+  background: var(--cyan);
+  border-radius: 2px;
+}

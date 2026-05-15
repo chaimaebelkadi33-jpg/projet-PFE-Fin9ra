@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\school;
 use App\Models\review;
+use App\Models\UserActivity;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class DashboardAdminController extends Controller
 {
@@ -24,20 +26,32 @@ class DashboardAdminController extends Controller
             $pendingReviews = review::where('verified', false)->count();
             
             // Calculate satisfaction rate
-            // Assuming rating is between 1 and 5
             $avgRating = review::avg('rating') ?? 0;
             $satisfaction = round(($avgRating / 5) * 100);
 
-            // Schools by city - Robust grouping (handles casing and spaces)
-            $schoolsByCity = school::select(\DB::raw('MAX(ville) as ville'), \DB::raw('count(*) as total'))
-                ->groupBy(\DB::raw('LOWER(TRIM(ville))'))
+            // Schools by city
+            $schoolsByCity = school::select(DB::raw('MAX(ville) as ville'), DB::raw('count(*) as total'))
+                ->groupBy(DB::raw('LOWER(TRIM(ville))'))
                 ->orderBy('total', 'desc')
                 ->get();
 
-            // Schools by type - Robust grouping (handles casing and spaces)
-            $schoolsByType = school::select(\DB::raw('MAX(type) as type'), \DB::raw('count(*) as total'))
-                ->groupBy(\DB::raw('LOWER(TRIM(type))'))
+            // Schools by Short Name (Network/Type)
+            $schoolsByType = school::select(DB::raw('MAX(SUBSTRING_INDEX(short_name, \' \', 1)) as type'), DB::raw('count(*) as total'))
+                ->whereNotNull('short_name')
+                ->groupBy(DB::raw('LOWER(SUBSTRING_INDEX(short_name, \' \', 1))'))
                 ->orderBy('total', 'desc')
+                ->get();
+
+            // User Activities by action
+            $activitiesByType = UserActivity::select('action', DB::raw('count(*) as total'))
+                ->groupBy('action')
+                ->get();
+
+            // Daily Activity (last 7 days)
+            $dailyActivity = UserActivity::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
+                ->where('created_at', '>=', now()->subDays(7))
+                ->groupBy(DB::raw('DATE(created_at)'))
+                ->orderBy('date', 'asc')
                 ->get();
 
             return response()->json([
@@ -50,7 +64,9 @@ class DashboardAdminController extends Controller
                     'satisfaction' => $satisfaction,
                     'avgRating' => round($avgRating, 1),
                     'schoolsByCity' => $schoolsByCity,
-                    'schoolsByType' => $schoolsByType
+                    'schoolsByType' => $schoolsByType,
+                    'activitiesByType' => $activitiesByType,
+                    'dailyActivity' => $dailyActivity
                 ]
             ]);
         } catch (\Exception $e) {

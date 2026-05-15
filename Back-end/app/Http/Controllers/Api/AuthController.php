@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Events\UserRegistered;
+use App\Events\UserLoggedIn;
+use App\Events\UserLoggedOut;
+use App\Events\UserProfileUpdated;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -28,6 +32,8 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        event(new UserRegistered($user));
 
         return response()->json([
             'user' => $user,
@@ -52,6 +58,8 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        event(new UserLoggedIn($user));
+
         return response()->json([
             'user' => $user,
             'token' => $token,
@@ -61,7 +69,10 @@ class AuthController extends Controller
     // Déconnexion
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+
+        event(new UserLoggedOut($user));
 
         return response()->json(['message' => 'Déconnecté avec succès']);
     }
@@ -103,6 +114,8 @@ class AuthController extends Controller
         }
 
         $user->update($data);
+
+        event(new UserProfileUpdated($user));
 
         return response()->json([
             'success' => true,
@@ -166,6 +179,12 @@ class AuthController extends Controller
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
                 ]);
+            }
+
+            if (!$user->wasRecentlyCreated) {
+                event(new UserLoggedIn($user));
+            } else {
+                event(new UserRegistered($user));
             }
 
             $token = $user->createToken('auth_token')->plainTextToken;

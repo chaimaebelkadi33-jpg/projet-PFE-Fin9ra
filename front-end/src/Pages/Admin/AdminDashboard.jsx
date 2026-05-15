@@ -166,7 +166,7 @@ const AdminDashboard = () => {
           <div className="breakdown-card">
             <h4>Nombre d'écoles par type</h4>
             <div className="breakdown-list">
-              {stats.schoolsByType?.map((item, index) => (
+              {stats.schoolsByType?.filter(item => item.total > 1).map((item, index) => (
                 <div key={index} className="breakdown-item">
                   <span className="item-name" style={{ textTransform: 'capitalize' }}>{item.type?.toLowerCase()}</span>
                   <div className="item-track">
@@ -175,6 +175,102 @@ const AdminDashboard = () => {
                   <span className="item-count">{item.total}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* User Activity Stats Section */}
+        <div className="activity-stats-section" style={{ marginTop: '30px' }}>
+          <div className="section-header">
+            <h3>Activité des Utilisateurs</h3>
+          </div>
+          
+          <div className="breakdown-grid">
+            <div className="breakdown-card">
+              <h4>Répartition par type d'action</h4>
+              <div className="breakdown-list">
+                {stats.activitiesByType?.map((item, index) => {
+                  const actionLabels = {
+                    'register': 'Inscriptions',
+                    'login': 'Connexions',
+                    'logout': 'Déconnexions',
+                    'update_profile': 'Mises à jour profil',
+                    'delete': 'Suppressions'
+                  };
+                  const totalActivities = stats.activitiesByType.reduce((acc, curr) => acc + curr.total, 0);
+                  return (
+                    <div key={index} className="breakdown-item">
+                      <span className="item-name">{actionLabels[item.action] || item.action}</span>
+                      <div className="item-track">
+                        <div className="item-bar activity-bar" style={{ 
+                          width: `${(item.total / (totalActivities || 1)) * 100}%`,
+                          backgroundColor: 'var(--accent-color, #00d1ff)' 
+                        }}></div>
+                      </div>
+                      <span className="item-count">{item.total}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="breakdown-card">
+              <h4>Activité sur les 7 derniers jours</h4>
+              <div className="activity-chart-container" style={{ 
+                height: '200px', 
+                display: 'flex', 
+                alignItems: 'flex-end', 
+                justifyContent: 'space-between',
+                padding: '20px 10px 40px 10px',
+                position: 'relative'
+              }}>
+                {stats.dailyActivity?.map((day, index) => {
+                  const maxTotal = Math.max(...stats.dailyActivity.map(d => d.total), 1);
+                  const heightPercentage = (day.total / maxTotal) * 100;
+                  const dateStr = new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short' });
+                  
+                  return (
+                    <div key={index} className="chart-bar-wrapper" style={{ 
+                      flex: 1, 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'center',
+                      gap: '8px',
+                      height: '100%'
+                    }}>
+                      <div className="chart-bar" style={{ 
+                        width: '30px', 
+                        height: `${heightPercentage}%`, 
+                        backgroundColor: 'rgba(0, 209, 255, 0.2)',
+                        borderTop: '3px solid #00d1ff',
+                        borderRadius: '4px 4px 0 0',
+                        position: 'relative',
+                        transition: 'height 0.3s ease'
+                      }}>
+                        <span className="bar-tooltip" style={{
+                          position: 'absolute',
+                          top: '-25px',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          color: '#00d1ff'
+                        }}>{day.total}</span>
+                      </div>
+                      <span className="chart-label" style={{ 
+                        fontSize: '12px', 
+                        color: 'rgba(255, 255, 255, 0.6)',
+                        textTransform: 'capitalize'
+                      }}>{dateStr}</span>
+                    </div>
+                  );
+                })}
+                {(!stats.dailyActivity || stats.dailyActivity.length === 0) && (
+                  <p style={{ width: '100%', textAlign: 'center', color: 'rgba(255, 255, 255, 0.4)' }}>
+                    Aucune activité enregistrée
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
